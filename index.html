@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crypto Price Checker // Web3 Terminal</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            obsidian: '#090D16',
+            cardDark: '#121824',
+            borderDark: '#1E293B',
+            textPrimary: '#F8FAFC',
+            textSecondary: '#94A3B8',
+            accentGreen: '#10B981',
+            accentRed: '#EF4444'
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+</head>
+
+<body
+  class="overflow-x-hidden min-h-screen flex flex-col bg-slate-50 dark:bg-obsidian text-slate-900 dark:text-slate-100 pt-7">
+
+  <!-- Mobile Sidebar Drawer Overlay -->
+  <div id="mobile-sidebar-overlay"
+    class="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-xs z-40 hidden transition-opacity duration-300">
+  </div>
+
+
+
+  <!-- Left Sidebar Panel -->
+  <aside id="sidebar"
+    class="fixed top-7 bottom-0 left-0 w-64 bg-white dark:bg-[#090D16] border-r border-slate-200 dark:border-gray-800/80 z-50 flex flex-col justify-between transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out overflow-y-auto">
+    <div>
+      <!-- Brand Logo -->
+      <div class="h-16 flex items-center px-6 border-b border-slate-200 dark:border-gray-800/80 gap-2.5">
+        <div class="h-8 w-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
+          <i data-lucide="activity" class="h-4.5 w-4.5 text-emerald-555 dark:text-emerald-400"></i>
+        </div>
+        <span class="font-bold text-sm tracking-wider text-slate-900 dark:text-slate-100 font-sans">Crypto Price <span
+            class="text-emerald-555 dark:text-emerald-400 font-semibold">Checker</span></span>
+      </div>
+
+      <!-- Navigation System -->
+      <nav class="p-4 space-y-1.5">
+        <button onclick="switchTab('all')" id="nav-all"
+          class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-semibold transition-all duration-200 bg-slate-100 dark:bg-gray-800/40 text-slate-900 dark:text-slate-100 border-l-2 border-emerald-550">
+          <i data-lucide="layout-dashboard" class="w-4.5 h-4.5 text-emerald-500 dark:text-emerald-400"></i>
+          <span>Tổng quan Bảng điều khiển</span>
+        </button>
+        <button onclick="switchTab('crypto')" id="nav-crypto"
+          class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-semibold transition-all duration-200 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-gray-800/30 hover:text-slate-900 dark:hover:text-slate-100 border-l-2 border-transparent">
+          <i data-lucide="coins" class="w-4.5 h-4.5 text-slate-400 dark:text-slate-555"></i>
+          <span>Tiền điện tử</span>
+        </button>
+        <button onclick="switchTab('stock')" id="nav-stock"
+          class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-semibold transition-all duration-200 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-gray-800/30 hover:text-slate-900 dark:hover:text-slate-100 border-l-2 border-transparent">
+          <i data-lucide="trending-up" class="w-4.5 h-4.5 text-slate-400 dark:text-slate-555"></i>
+          <span>Thị trường Chứng khoán</span>
+        </button>
+        <button onclick="switchTab('forex')" id="nav-forex"
+          class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-semibold transition-all duration-200 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-gray-800/30 hover:text-slate-900 dark:hover:text-slate-100 border-l-2 border-transparent">
+          <i data-lucide="refresh-cw" class="w-4.5 h-4.5 text-slate-400 dark:text-slate-555"></i>
+          <span>Chuyển đổi Ngoại hối</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- Sidebar Bottom Status Indicators -->
+    <div class="p-6 border-t border-slate-200 dark:border-gray-800/80 space-y-4">
+      <div class="space-y-2.5">
+        <div class="text-[10px] font-semibold text-slate-400 dark:text-slate-550 uppercase tracking-wider">Trạng thái
+          Giao dịch</div>
+        <div class="flex items-center justify-between text-[11px]">
+          <span class="text-slate-550 dark:text-slate-400 font-medium">Thị trường Crypto</span>
+          <span class="flex items-center gap-1.5 text-emerald-500 dark:text-emerald-400 font-bold">
+            <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            MỞ CỬA 24/7
+          </span>
+        </div>
+        <div class="flex items-center justify-between text-[11px]">
+          <span class="text-slate-505 dark:text-slate-400 font-medium">Trạng thái NYSE</span>
+          <span id="nyse-status" class="flex items-center gap-1.5 text-slate-400 dark:text-slate-505 font-bold">
+            <span class="h-1.5 w-1.5 rounded-full bg-slate-400 dark:bg-slate-500"></span>
+            ĐANG KIỂM TRA...
+          </span>
+        </div>
+        <div class="flex items-center justify-between text-[11px]">
+          <span class="text-slate-505 dark:text-slate-400 font-medium">Thị trường Ngoại hối</span>
+          <span id="fx-status" class="flex items-center gap-1.5 text-slate-400 dark:text-slate-505 font-bold">
+            <span class="h-1.5 w-1.5 rounded-full bg-slate-400 dark:bg-slate-500"></span>
+            ĐANG KIỂM TRA...
+          </span>
+        </div>
+      </div>
+
+      <!-- API Connectivity Alert -->
+      <div id="api-alert"
+        class="hidden p-3 rounded-lg bg-emerald-500/5 border border-emerald-500/10 dark:border-emerald-500/20 flex gap-2 items-start text-[11px] text-slate-500 dark:text-slate-400">
+        <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-555 dark:text-emerald-400 shrink-0"></i>
+        <span>Các nguồn dữ liệu bên ngoài (Binance & Frankfurter) đang hoạt động.</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Display Screen -->
+  <main class="flex-1 md:ml-64 min-h-screen flex flex-col transition-all duration-300">
+    <!-- Top Bar Navigation Headers -->
+    <header
+      class="h-16 border-b border-slate-200 dark:border-gray-800/80 bg-white/95 dark:bg-[#090D16]/95 backdrop-blur-md sticky top-0 z-30 flex items-center justify-between px-6">
+      <div class="flex items-center gap-4 flex-1 max-w-lg">
+        <!-- Mobile Sidebar Trigger Button -->
+        <button id="mobile-toggle-btn"
+          class="md:hidden p-1.5 rounded-lg border border-slate-205 dark:border-gray-800 bg-white dark:bg-[#121824] hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors">
+          <i data-lucide="menu" class="w-5 h-5"></i>
+        </button>
+        <!-- Card Filter Search Bar -->
+        <div class="relative w-full">
+          <i data-lucide="search"
+            class="w-4 h-4 text-slate-400 dark:text-slate-505 absolute left-3 top-1/2 -translate-y-1/2"></i>
+          <input type="text" id="search-input" placeholder="Tìm kiếm tài sản, ký hiệu, mã..."
+            class="w-full bg-slate-50 dark:bg-[#121824]/60 border border-slate-200 dark:border-gray-800/80 rounded-lg pl-9 pr-4 py-1.5 text-xs text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-505 focus:outline-none focus:border-emerald-500/50 transition-colors" />
+          <button id="search-clear-btn"
+            class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-505 hover:text-slate-600 dark:hover:text-slate-300">
+            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Web3 Connect & Theme Toggle Widgets -->
+      <div class="flex items-center gap-2.5">
+        <!-- Theme Toggle Button -->
+        <button id="theme-toggle-btn" onclick="toggleTheme()"
+          class="border border-slate-200 dark:border-gray-800 bg-white dark:bg-[#121824] hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 p-2 rounded-lg transition-all duration-300 cursor-pointer flex items-center justify-center"
+          title="Chuyển đổi Giao diện">
+          <i id="theme-toggle-icon" data-lucide="sun" class="w-4 h-4"></i>
+        </button>
+
+        <button id="connect-wallet-btn" onclick="toggleWalletConnection()"
+          class="border border-slate-200 dark:border-gray-800 bg-white dark:bg-[#121824] hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-gray-700 text-slate-800 dark:text-slate-100 px-4 py-1.5 rounded-lg flex items-center gap-2 transition-all duration-300 font-semibold text-xs cursor-pointer group shadow-sm">
+          <span id="wallet-status-dot" class="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500"></span>
+          <span id="wallet-btn-text">Kết nối Ví</span>
+          <i data-lucide="wallet"
+            class="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-slate-100 transition-colors"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Container Content -->
+    <div class="p-6 space-y-6 flex-1 max-w-7xl mx-auto w-full">
+      <!-- Welcome breadcrumb header -->
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 id="page-title" class="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Tổng quan Thị
+            trường</h1>
+          <p id="page-subtitle" class="text-xs text-slate-505 dark:text-slate-400 mt-0.5">Giá tài sản thời gian thực,
+            biểu đồ trực tiếp và công cụ chuyển đổi tiền tệ.</p>
+        </div>
+        <div
+          class="flex items-center gap-3 text-xs bg-white dark:bg-[#121824] border border-slate-205 dark:border-gray-800/80 rounded-lg p-1.5 px-3 shadow-xs">
+          <span class="text-slate-505 dark:text-slate-400 font-medium">Số dư Danh mục (Demo):</span>
+          <span id="portfolio-value" class="font-bold text-slate-900 dark:text-slate-100 font-mono">$45,182.50</span>
+          <span class="text-emerald-500 dark:text-emerald-400 font-semibold flex items-center gap-0.5 font-sans">
+            <i data-lucide="trending-up" class="w-3 h-3"></i>
+            +2.45%
+          </span>
+        </div>
+      </div>
+
+      <!-- Ticker cards slider/grid -->
+      <div id="tickers-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Initial skeletons -->
+        <div
+          class="h-36 rounded-xl border border-slate-200 dark:border-gray-800/80 bg-white dark:bg-[#121824] p-5 flex flex-col justify-between skeleton">
+        </div>
+        <div
+          class="h-36 rounded-xl border border-slate-200 dark:border-gray-800/80 bg-white dark:bg-[#121824] p-5 flex flex-col justify-between skeleton">
+        </div>
+        <div
+          class="h-36 rounded-xl border border-slate-200 dark:border-gray-800/80 bg-white dark:bg-[#121824] p-5 flex flex-col justify-between skeleton">
+        </div>
+        <div
+          class="h-36 rounded-xl border border-slate-200 dark:border-gray-800/80 bg-white dark:bg-[#121824] p-5 flex flex-col justify-between skeleton">
+        </div>
+        <div
+          class="h-36 rounded-xl border border-slate-200 dark:border-gray-800/80 bg-white dark:bg-[#121824] p-5 flex flex-col justify-between skeleton">
+        </div>
+        <div
+          class="h-36 rounded-xl border border-slate-200 dark:border-gray-800/80 bg-white dark:bg-[#121824] p-5 flex flex-col justify-between skeleton">
+        </div>
+      </div>
+
+      <!-- Grid view: Ticker chart + Widget sections -->
+      <div id="dashboard-view-panel" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Main Line Chart (Cols 1-2) -->
+        <div
+          class="lg:col-span-2 bg-white dark:bg-[#121824] border border-slate-205 dark:border-gray-800/80 rounded-xl p-5 flex flex-col justify-between min-h-[420px] shadow-xs">
+          <!-- Chart metadata headers -->
+          <div class="flex justify-between items-start border-b border-slate-200 dark:border-gray-800/60 pb-4 mb-4">
+            <div>
+              <div class="flex items-center gap-2.5">
+                <!-- Asset logo image container -->
+                <div
+                  class="h-8 w-8 rounded-lg bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 flex items-center justify-center shrink-0 overflow-hidden">
+                  <img id="chart-asset-logo"
+                    src="https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/btc.png"
+                    alt="Bitcoin" class="h-5 w-5 object-contain" />
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span id="chart-asset-name"
+                      class="font-bold text-slate-800 dark:text-slate-100 text-sm">Bitcoin</span>
+                    <span id="chart-asset-symbol"
+                      class="text-[10px] bg-slate-100 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded font-mono font-bold">BTCUSDT</span>
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-baseline gap-2 mt-1">
+                <span id="chart-asset-price"
+                  class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 font-mono">$0.00</span>
+                <span id="chart-asset-change"
+                  class="text-xs font-semibold text-emerald-500 dark:text-emerald-400">+0.00%</span>
+              </div>
+            </div>
+            <!-- Time Interval toggles -->
+            <div
+              class="flex bg-slate-100 dark:bg-gray-900 border border-slate-205 dark:border-gray-800 p-0.5 rounded-lg text-[10px] font-bold text-slate-500 dark:text-slate-400">
+              <button onclick="setChartInterval('24H')" id="interval-24H"
+                class="px-2.5 py-1 rounded-md hover:text-slate-900 dark:hover:text-slate-100 transition-colors">24G</button>
+              <button onclick="setChartInterval('7D')" id="interval-7D"
+                class="px-2.5 py-1 rounded-md bg-white dark:bg-gray-800 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-transparent shadow transition-all duration-200">7N</button>
+              <button onclick="setChartInterval('30D')" id="interval-30D"
+                class="px-2.5 py-1 rounded-md hover:text-slate-900 dark:hover:text-slate-100 transition-colors">30N</button>
+            </div>
+          </div>
+
+          <!-- Line Chart Canvas -->
+          <div class="relative flex-1 w-full h-[280px]">
+            <canvas id="main-trend-chart"></canvas>
+            <div id="chart-loading-overlay"
+              class="absolute inset-0 bg-white/85 dark:bg-[#121824]/85 backdrop-blur-xs flex items-center justify-center text-slate-550 dark:text-slate-400 text-xs hidden">
+              <div class="flex flex-col items-center gap-3">
+                <div class="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+                <span class="font-semibold text-slate-700 dark:text-slate-300">Đang đồng bộ hóa dữ liệu lịch
+                  sử...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sidebar Widgets (Col 3) -->
+        <div id="sidebar-widgets-container" class="space-y-6 flex flex-col justify-start">
+
+          <!-- Web3 Smart Swap Converter Widget (Uniswap Style) -->
+          <div id="converter-widget"
+            class="bg-white dark:bg-[#121824] border border-slate-200 dark:border-gray-800/80 rounded-2xl p-5 space-y-4 shadow-sm relative">
+            <!-- Header -->
+            <div class="flex justify-between items-center pb-1">
+              <h3 class="font-bold text-slate-900 dark:text-slate-200 text-xs flex items-center gap-2">
+                <i data-lucide="refresh-cw" class="w-4 h-4 text-emerald-500 dark:text-emerald-400"></i>
+                Hoán đổi Tài sản
+              </h3>
+              <button
+                class="text-slate-400 dark:text-slate-500 hover:text-slate-650 dark:hover:text-slate-300 transition-colors cursor-pointer">
+                <i data-lucide="settings" class="w-4 h-4"></i>
+              </button>
+            </div>
+
+            <!-- Inputs Wrapper -->
+            <div class="space-y-1 relative">
+              <!-- Pay Box -->
+              <div
+                class="bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-gray-800/85 rounded-xl p-4 transition-colors focus-within:border-emerald-500/50">
+                <div
+                  class="flex justify-between text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider mb-1">
+                  <span>Bạn trả</span>
+                </div>
+                <div class="flex items-center justify-between gap-2">
+                  <input type="number" id="conv-amount" value="1"
+                    class="w-full bg-transparent text-2xl font-bold text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-700 focus:outline-none font-mono"
+                    oninput="calculateConversion()" />
+                  <!-- Asset Select + Icon Wrapper -->
+                  <button onclick="openTokenSelector('from')"
+                    class="flex items-center gap-2 bg-slate-100 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 hover:bg-slate-200 dark:hover:bg-gray-700 rounded-full px-2 py-1 shadow-xs shrink-0 cursor-pointer transition-colors">
+                    <img id="swap-from-logo" src="https://cryptologos.cc/logos/bitcoin-btc-logo.svg?v=025" alt="BTC"
+                      class="w-6 h-6 rounded-full object-cover shadow-sm bg-white" />
+                    <span id="swap-from-text"
+                      class="text-slate-800 dark:text-slate-100 text-sm font-bold pr-1">BTC</span>
+                    <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400"></i>
+                  </button>
+                  <input type="hidden" id="conv-from" value="BTC" />
+                </div>
+                <div class="text-[10px] text-slate-400 dark:text-slate-550 mt-1.5 font-semibold" id="conv-from-usd-val">
+                  ~$0.00
+                </div>
+              </div>
+
+              <!-- Swap Directions Overlay Button -->
+              <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+                <button onclick="swapConverterCurrencies()"
+                  class="p-2 rounded-xl border border-slate-200 dark:border-gray-800 bg-white dark:bg-[#121824] hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors shadow-md cursor-pointer flex items-center justify-center">
+                  <i data-lucide="arrow-down-up" class="w-4 h-4"></i>
+                </button>
+              </div>
+
+              <!-- Receive Box -->
+              <div
+                class="bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-gray-800/85 rounded-xl p-4 transition-colors">
+                <div
+                  class="flex justify-between text-[10px] text-slate-400 dark:text-slate-505 font-bold uppercase tracking-wider mb-1">
+                  <span>Bạn nhận</span>
+                </div>
+                <div class="flex items-center justify-between gap-2">
+                  <input type="text" id="conv-result" value="0.00"
+                    class="w-full bg-transparent text-2xl font-bold text-emerald-650 dark:text-emerald-450 focus:outline-none font-mono"
+                    readonly />
+                  <!-- Asset Select + Icon Wrapper -->
+                  <button onclick="openTokenSelector('to')"
+                    class="flex items-center gap-2 bg-slate-100 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 hover:bg-slate-200 dark:hover:bg-gray-700 rounded-full px-2 py-1 shadow-xs shrink-0 cursor-pointer transition-colors">
+                    <img id="swap-to-logo" src="https://flagcdn.com/w80/vn.png" alt="VND"
+                      class="w-6 h-6 rounded-full object-cover shadow-sm bg-white" />
+                    <span id="swap-to-text" class="text-slate-800 dark:text-slate-100 text-sm font-bold pr-1">VND</span>
+                    <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400"></i>
+                  </button>
+                  <input type="hidden" id="conv-to" value="VND" />
+                </div>
+                <div class="text-[10px] text-slate-400 dark:text-slate-550 mt-1.5 font-semibold" id="conv-to-usd-val">
+                  ~$0.00
+                </div>
+              </div>
+            </div>
+
+            <!-- Swap Rate and Price Impact Metrics -->
+            <div class="space-y-1.5 px-1 py-0.5 leading-relaxed">
+              <div class="flex justify-between text-[10px]">
+                <span class="text-slate-400 dark:text-slate-505 font-bold">Tỉ giá Hoán đổi</span>
+                <span id="swap-rate-label" class="text-slate-700 dark:text-slate-300 font-mono font-bold">1 BTC ≈ 0.00
+                  VND</span>
+              </div>
+              <div class="flex justify-between text-[10px]">
+                <span class="text-slate-400 dark:text-slate-505 font-bold">Tác động giá / Trượt giá</span>
+                <span class="text-slate-500 font-mono font-semibold">
+                  < 0.01% (Tự động)</span>
+              </div>
+            </div>
+
+            <!-- Action Button -->
+            <button id="swap-action-btn" onclick="executeSwapTransaction()"
+              class="w-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 dark:border-emerald-500/30 py-3.5 rounded-xl font-bold text-xs transition-all duration-300 shadow-sm cursor-pointer uppercase tracking-wider flex items-center justify-center gap-2">
+              <span>Kết nối Ví để Hoán đổi</span>
+            </button>
+
+            <!-- Forex rate label footer -->
+            <div id="forex-info"
+              class="text-[9px] text-slate-400 dark:text-slate-505 pt-1.5 text-center leading-relaxed">
+              Đang đồng bộ hóa với các nút dữ liệu Frankfurter...
+            </div>
+          </div>
+
+          <!-- Market sentiment indicators -->
+          <div
+            class="bg-white dark:bg-[#121824] border border-slate-200 dark:border-gray-800/80 rounded-xl p-5 space-y-4 shadow-xs">
+            <div class="flex justify-between items-center border-b border-slate-200 dark:border-gray-800/60 pb-3">
+              <h3 class="font-bold text-slate-900 dark:text-slate-200 text-xs flex items-center gap-2">
+                <i data-lucide="compass" class="w-4 h-4 text-emerald-505 dark:text-emerald-400"></i>
+                Phân tích Thị trường
+              </h3>
+              <span
+                class="text-[9px] text-slate-400 dark:text-slate-505 uppercase tracking-wider font-mono font-bold">Terminal</span>
+            </div>
+
+            <div class="space-y-3.5">
+              <!-- Sentiment index indicator -->
+              <div class="space-y-1.5">
+                <div class="flex justify-between text-[11px]">
+                  <span class="text-slate-505 dark:text-slate-400 font-medium">Fear & Greed Index</span>
+                  <span class="text-emerald-500 dark:text-emerald-400 font-bold">68 - Greed</span>
+                </div>
+                <div class="w-full bg-slate-100 dark:bg-gray-900 h-2 rounded-full overflow-hidden flex">
+                  <div class="bg-red-500 h-full w-[30%]"></div>
+                  <div class="bg-amber-500 h-full w-[25%]"></div>
+                  <div class="bg-emerald-505 h-full w-[13%] rounded-r-full"></div>
+                  <div class="bg-slate-200 dark:bg-gray-800 h-full flex-1"></div>
+                </div>
+              </div>
+
+              <!-- Gas fee widget -->
+              <div
+                class="flex justify-between items-center bg-slate-50 dark:bg-gray-900/40 p-2.5 rounded-lg border border-slate-200 dark:border-gray-800/50">
+                <div class="flex items-center gap-2 text-xs">
+                  <i data-lucide="zap" class="w-4 h-4 text-amber-500 dark:text-amber-400 shrink-0"></i>
+                  <span class="text-slate-500 dark:text-slate-400 font-medium">Gas fee (Ethereum)</span>
+                </div>
+                <span class="text-slate-805 dark:text-slate-202 text-[11px] font-mono font-bold">24 Gwei</span>
+              </div>
+
+              <!-- Max daily gainer widget -->
+              <div
+                class="flex justify-between items-center bg-slate-50 dark:bg-gray-900/40 p-2.5 rounded-lg border border-slate-200 dark:border-gray-800/50">
+                <div class="flex items-center gap-2 text-xs">
+                  <i data-lucide="star" class="w-4 h-4 text-emerald-500 dark:text-emerald-400 shrink-0"></i>
+                  <span class="text-slate-505 dark:text-slate-400 font-medium">Top Terminal Mover</span>
+                </div>
+                <span id="top-mover" class="text-emerald-500 dark:text-emerald-400 text-[11px] font-mono font-bold">SOL
+                  (+0.0%)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dedicated Forex panel view (Hidden by default) -->
+      <div id="forex-view-panel" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Forex Rates Table Column -->
+        <div
+          class="lg:col-span-2 bg-white dark:bg-[#121824] border border-slate-200 dark:border-gray-800/80 rounded-xl p-5 flex flex-col justify-between min-h-[420px] shadow-xs">
+          <div>
+            <div class="flex justify-between items-center border-b border-slate-200 dark:border-gray-800/60 pb-3 mb-4">
+              <h3 class="font-bold text-slate-900 dark:text-slate-200 text-xs flex items-center gap-2">
+                <i data-lucide="globe" class="w-4 h-4 text-emerald-500 dark:text-emerald-400"></i>
+                Ma Trận Tỷ giá Toàn cầu
+              </h3>
+              <span
+                class="text-[9px] text-slate-400 dark:text-slate-505 uppercase tracking-wider font-mono font-bold font-semibold">Cơ
+                sở USD</span>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr
+                    class="border-b border-slate-205 dark:border-gray-800 text-[9px] text-slate-400 dark:text-slate-505 uppercase tracking-wider font-semibold">
+                    <th class="py-2.5 px-4">Cặp Tiền tệ</th>
+                    <th class="py-2.5 px-4">Tỷ giá</th>
+                    <th class="py-2.5 px-4">Tỷ giá Ngược</th>
+                    <th class="py-2.5 px-4">Trạng thái</th>
+                  </tr>
+                </thead>
+                <tbody id="forex-table-body"
+                  class="divide-y divide-slate-100 dark:divide-gray-800/50 text-xs font-semibold text-slate-800 dark:text-slate-300 font-mono">
+                  <!-- Injected via JavaScript -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div
+            class="text-[10px] text-slate-400 dark:text-slate-505 mt-6 pt-3 border-t border-slate-200 dark:border-gray-800/60 leading-relaxed font-sans">
+            Tỷ giá được cập nhật theo giờ. Dữ liệu từ Frankfurter và Open Exchange API.
+          </div>
+        </div>
+
+        <!-- Forex Converter Destination Column -->
+        <div id="forex-converter-destination" class="space-y-6">
+          <!-- Relocated converter widget will render here when Forex tab is active -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Notification Toast Element -->
+    <div id="toast"
+      class="fixed bottom-6 right-6 bg-white dark:bg-slate-900 border border-slate-205 dark:border-gray-800 px-4 py-3 rounded-lg shadow-2xl flex items-center gap-3 transform translate-y-24 opacity-0 transition-all duration-300 z-50 max-w-sm">
+      <div id="toast-icon-container"
+        class="h-7 w-7 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0">
+        <i data-lucide="wallet" class="h-4 w-4 text-emerald-500 dark:text-emerald-400"></i>
+      </div>
+      <div class="flex-1">
+        <h4 id="toast-title" class="text-xs font-bold text-slate-900 dark:text-slate-100">Toast Title</h4>
+        <p id="toast-desc" class="text-[11px] text-slate-550 dark:text-slate-400 mt-0.5">Details here.</p>
+      </div>
+      <button onclick="hideToast()"
+        class="text-slate-400 dark:text-slate-505 hover:text-slate-600 dark:hover:text-slate-300 ml-2 cursor-pointer">
+        <i data-lucide="x" class="w-3.5 h-3.5"></i>
+      </button>
+    </div>
+
+    <!-- Screen Footer -->
+    <footer
+      class="h-14 border-t border-slate-205 dark:border-gray-800/80 bg-white dark:bg-[#090D16] flex items-center justify-between px-6 text-[10px] text-slate-400 dark:text-slate-500 mt-auto">
+      <div>© 2026 Crypto Price Checker. Premium Financial Tracker.</div>
+      <div class="flex gap-4 font-semibold">
+        <a href="#" class="hover:text-slate-600 dark:hover:text-slate-300 transition-colors">Privacy Policy</a>
+        <a href="#" class="hover:text-slate-600 dark:hover:text-slate-300 transition-colors">Terms of Service</a>
+      </div>
+    </footer>
+  </main>
+
+  <!-- Toast Notifications -->
+  <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Modal Overlay (Hidden by default) -->
+  <div id="modal-overlay"
+    class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
+    <div id="modal-content"
+      class="bg-white dark:bg-[#121824] border border-slate-200 dark:border-gray-800 rounded-2xl p-6 shadow-2xl w-[90%] max-w-sm scale-95 transition-transform duration-300">
+      <!-- Modal inner content injected via JS -->
+    </div>
+  </div>
+
+  <!-- Top Announcement Bar -->
+  <div
+    class="fixed bottom-0 left-0 right-0 z-[60] h-7 flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600/90 via-emerald-500/90 to-teal-500/90 backdrop-blur-sm">
+    <span class="text-[10px] font-semibold text-white/80 tracking-widest uppercase">✦ Built by</span>
+    <span class="text-[11px] font-bold text-white tracking-wide">Khang &amp; Antigravity</span>
+    <span class="text-white/40 text-[10px]">·</span>
+    <span class="text-[10px] font-medium text-white/70 tracking-wider italic">Vibe Coding</span>
+    <span class="text-[10px] font-semibold text-white/80 tracking-widest uppercase">✦</span>
+  </div>
+
+  <!-- External JS Application Logic -->
+  <script type="module" src="./src/main.js"></script>
+</body>
+
+</html>
