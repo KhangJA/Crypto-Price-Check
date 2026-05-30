@@ -27,11 +27,11 @@ Chào mọi người! Đây là một dự án nhỏ mà mình làm một cái d
 
 ## Cách chạy thử trên máy của bạn
 
-### Cách 1: Dùng VS Code (Khuyên dùng - Dễ nhất)
+### Cách 1: Dùng VS Code 
 1. Bạn vào mục Extensions trên VS Code, tìm và cài tiện ích tên là Live Server.
 2. Click chuột phải vào file index.html của dự án rồi chọn Open with Live Server.
 
-### Cách 2: Dùng Node.js (Nếu máy bạn có sẵn)
+### Cách 2: Dùng Node.js
 Mở Terminal ngay tại thư mục dự án và gõ lệnh:
 ```bash
 npx serve .
