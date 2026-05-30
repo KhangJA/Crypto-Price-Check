@@ -2,7 +2,7 @@
 
 Chào mọi người! Đây là một dự án nhỏ mà mình làm một cái demo dashboard giá của các đổng coin và cổ phiếu. Giao diện được thiết kế theo phong cách Web3 (phi tập trung) hiện đại và dễ tiếp cận.
 
-# Link Demo: https://khangja.github.io/Crypto-Price-Check/
+## Link Demo: https://khangja.github.io/Crypto-Price-Check/
 ---
 
 ## Dự án này có gì?
