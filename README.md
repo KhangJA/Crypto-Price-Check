@@ -1,47 +1,63 @@
 # Crypto Price Checker
 
-Một bảng điều khiển tài chính đơn giản nhưng chuyên nghiệp mang phong cách Web3 (phi tập trung), giúp bạn theo dõi giá cả theo thời gian thực.
+Chào mọi người! Đây là một dự án nhỏ mà mình làm để tạo ra một bảng điều khiển (dashboard) theo dõi tài chính cá nhân. Giao diện được thiết kế theo phong cách Web3 (phi tập trung) hiện đại, trực quan và rất dễ tiếp cận.
 
-## 🚀 Các Tính năng chính
+Dự án này cực kỳ phù hợp cho những bạn nào muốn tham khảo cách làm một giao diện tài chính sạch đẹp, tích hợp biểu đồ real-time hoặc tìm hiểu cách hoạt động của một ứng dụng Swap tiền điện tử.
 
-- **Dữ liệu Crypto Trực tiếp**: Lấy giá thực tế từ Binance (BTC, ETH, SOL).
-- **Giao diện Hoán đổi (Swap)**: Trải nghiệm tính năng quy đổi tiền tệ giống hệt Uniswap.
-- **Mô phỏng Chứng khoán**: Mô phỏng dữ liệu giá chứng khoán (AAPL, TSLA, NVDA) biến động như thật.
-- **Biểu đồ Trực quan**: Biểu đồ hiển thị giá với phong cách hiện đại.
-- **Chế độ Tối / Sáng**: Hỗ trợ giao diện nền đen và nền trắng.
-- **Kết nối Ví Demo**: Mô phỏng quá trình kết nối ví Web3.
+---
 
-## 🛠️ Công nghệ Sử dụng
+## Dự án này có gì hay?
 
-- **Giao diện**: HTML, JavaScript (ES6 Modules).
-- **CSS**: Tailwind CSS.
-- **Biểu đồ**: Chart.js.
-- **Icon**: Lucide Icons, UI-Avatars, CryptoLogos.
+- **Giá Crypto Real-time:** Dữ liệu giá của các đồng coin lớn (BTC, ETH, SOL) được lấy trực tiếp từ API của Binance.
+- **Tính năng Giả lập Swap:** Mình có thiết kế một bộ khung hoán đổi tài sản nhìn y hệt như Uniswap. Bạn có thể nhập số lượng và bấm đổi thử để xem hiệu ứng xử lý Web3 cực mượt.
+- **Bảng Giá Chứng Khoán (Mô phỏng):** Ngoài crypto, mình có làm thêm phần giả lập biến động giá cho mấy mã công nghệ lớn như AAPL, TSLA, NVDA để dashboard nhìn sinh động hơn.
+- **Biểu đồ Trực quan:** Sử dụng biểu đồ để theo dõi xu hướng giá, giao diện hiện đại và rất nịnh mắt.
+- **Dark/Light Mode:** Thích giao diện tối huyền bí hay sáng sủa sạch sẽ đều có đủ.
+- **Demo Kết nối Ví:** Trải nghiệm thử cảm giác bấm "Connect Wallet" chuẩn chỉnh Web3.
 
-## 🎮 Hướng dẫn Sử dụng
+---
 
-Để chạy dự án này trên máy tính của bạn, bạn cần một Local Server (Máy chủ cục bộ) do dự án sử dụng ES6 Modules.
+## Công nghệ mình sử dụng
 
-**Cách 1: Dùng VS Code**
-1. Cài đặt tiện ích **Live Server**.
-2. Chuột phải vào file `index.html` và chọn **Open with Live Server**.
+Để giữ cho dự án nhẹ nhàng và dễ chạy nhất có thể, mình chủ yếu dùng các công nghệ thuần:
+- **Frontend:** HTML5, JavaScript thuần (sử dụng ES6 Modules giúp chia tách code gọn gàng).
+- **Styling:** Tailwind CSS (giúp lên giao diện nhanh và responsive tốt).
+- **Chart:** Chart.js (thư viện vẽ biểu đồ cực kỳ gọn nhẹ).
+- **Icons & Avatar:** Sử dụng kết hợp Lucide Icons, UI-Avatars và CryptoLogos để tối ưu hiển thị.
 
-**Cách 2: Dùng Node.js (npx)**
-Mở Terminal tại thư mục dự án và chạy lệnh:
+---
+
+## Cách chạy thử trên máy của bạn
+
+Vì dự án này mình có chia code theo dạng ES6 Modules, nên trình duyệt sẽ không cho phép bạn click đúp mở trực tiếp file index.html (sẽ dính lỗi CORS). Bạn cần chạy nó qua một Local Server (máy chủ cục bộ). 
+
+Bạn có thể chọn 1 trong 3 cách siêu nhanh dưới đây:
+
+### Cách 1: Dùng VS Code (Khuyên dùng - Dễ nhất)
+1. Bạn vào mục Extensions trên VS Code, tìm và cài tiện ích tên là Live Server.
+2. Click chuột phải vào file index.html của dự án rồi chọn Open with Live Server.
+
+### Cách 2: Dùng Node.js (Nếu máy bạn có sẵn)
+Mở Terminal ngay tại thư mục dự án và gõ lệnh:
 ```bash
 npx serve .
 ```
-Sau đó truy cập `http://localhost:3000` trên trình duyệt.
+Sau đó mở trình duyệt và truy cập vào địa chỉ: http://localhost:3000
 
-**Cách 3: Dùng Python**
-Mở Terminal tại thư mục dự án và chạy lệnh:
+### Cách 3: Dùng Python
+Nếu máy bạn có cài Python, mở Terminal tại thư mục dự án và chạy:
 ```bash
 python -m http.server 8000
 ```
-Sau đó truy cập `http://localhost:8000` trên trình duyệt.
+Sau đó mở trình duyệt và truy cập vào địa chỉ: http://localhost:8000
 
 ---
-**Trải nghiệm tính năng Hoán đổi (Swap):**
-1. Nhấn nút **"Kết nối Ví"** ở góc trên cùng bên phải.
-2. Tại bảng **Hoán đổi Tài sản**, chọn loại tiền bạn có (VD: BTC) và loại tiền muốn nhận (VD: VND).
-3. Nhập số lượng và nhấn **"Xác nhận Hoán đổi"** để xem hiệu ứng xử lý Web3 tuyệt đẹp!
+
+## Thử nghiệm tính năng Swap (Hoán đổi) như thế nào?
+
+Nếu bạn muốn test thử tính năng Swap, hãy làm theo các bước này nhé:
+1. Nhìn lên góc trên cùng bên phải, bấm nút "Kết nối Ví".
+2. Ở khung Hoán đổi Tài sản, bạn chọn đồng tiền mình đang có (ví dụ: BTC) và đồng tiền muốn đổi sang (ví dụ: VND).
+3. Nhập số lượng coin bất kỳ rồi bấm "Xác nhận Hoán đổi" để tận hưởng hiệu ứng xử lý cực kỳ đẹp mắt nhé!
+
+Hi vọng dự án nhỏ này mang lại chút cảm hứng hoặc giúp ích được gì đó cho bạn. Nếu thấy hay, đừng quên để lại cho mình 1 Star ủng hộ nhé! Cảm ơn mọi người!
