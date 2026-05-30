@@ -1,5 +1,5 @@
 // ui.js
-import { state, getAssetLogo, getUSDPrice } from './state.js';
+import { state, getAssetLogo, getUSDPrice, recalculatePortfolioValue } from './state.js';
 import { toggleWalletConnection, showToast } from './wallet.js';
 
 export function formatCurrency(value) {
@@ -53,7 +53,7 @@ export function refreshAssetsUI() {
     const card = document.createElement("div");
     card.className = `group rounded-2xl border p-5 flex flex-col justify-between h-40 bg-white/60 dark:bg-[#121824]/60 backdrop-blur-md hover:bg-slate-50 dark:hover:bg-[#151c2c] transition-all duration-300 cursor-pointer ${
       isActive 
-        ? 'border-emerald-500 dark:border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.1)]' 
+        ? 'border-sky-400 dark:border-sky-400/50 shadow-[0_0_15px_rgba(56,189,248,0.15)]' 
         : 'border-slate-200 dark:border-gray-800/80 hover:border-slate-300 dark:hover:border-gray-700/80'
     }`;
     card.onclick = () => selectActiveAsset(key);
@@ -197,30 +197,59 @@ export function refreshMainChart() {
   const tickColor = isDark ? '#64748B' : '#475569';
   const gridColor = isDark ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.03)';
 
+  const datasets = [{
+    label: `${asset.ticker} Price`,
+    data: dataArr,
+    borderColor: color,
+    borderWidth: 2,
+    tension: 0.1,
+    pointRadius: 0,
+    pointHoverRadius: 4,
+    pointBackgroundColor: color,
+    fill: true,
+    backgroundColor: (context) => {
+      const chart = context.chart;
+      const {ctx, chartArea} = chart;
+      if (!chartArea) return null;
+      const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+      gradient.addColorStop(0, `${color}20`);
+      gradient.addColorStop(1, `${color}00`);
+      return gradient;
+    }
+  }];
+
+  const smaToggle = document.getElementById("sma-indicator-toggle");
+  const isSMAActive = smaToggle ? smaToggle.checked : false;
+
+  if (isSMAActive) {
+    const smaData = [];
+    const smaPeriod = 5;
+    for (let i = 0; i < dataArr.length; i++) {
+      const startIdx = Math.max(0, i - smaPeriod + 1);
+      const windowPrices = dataArr.slice(startIdx, i + 1);
+      const sum = windowPrices.reduce((a, b) => a + b, 0);
+      const avg = sum / windowPrices.length;
+      smaData.push(Number(avg.toFixed(2)));
+    }
+    
+    datasets.push({
+      label: 'Chỉ báo SMA (5)',
+      data: smaData,
+      borderColor: '#38BDF8', // Xanh Dương Sáng
+      borderWidth: 1.5,
+      borderDash: [4, 4],
+      pointRadius: 0,
+      pointHoverRadius: 0,
+      fill: false,
+      tension: 0.1
+    });
+  }
+
   state.mainChartInstance = new Chart(ctx, {
     type: 'line',
     data: {
       labels: dataArr.map((_, i) => `${labelFormat}${i + 1}`),
-      datasets: [{
-        label: `${asset.ticker} Price`,
-        data: dataArr,
-        borderColor: color,
-        borderWidth: 2,
-        tension: 0.1,
-        pointRadius: 0,
-        pointHoverRadius: 4,
-        pointBackgroundColor: color,
-        fill: true,
-        backgroundColor: (context) => {
-          const chart = context.chart;
-          const {ctx, chartArea} = chart;
-          if (!chartArea) return null;
-          const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-          gradient.addColorStop(0, `${color}20`);
-          gradient.addColorStop(1, `${color}00`);
-          return gradient;
-        }
-      }]
+      datasets: datasets
     },
     options: {
       responsive: true,
@@ -310,7 +339,7 @@ export function populateForexTable() {
     { base: 'EUR', quote: 'VND', rate: state.forexRates.VND / state.forexRates.EUR, inv: state.forexRates.EUR / state.forexRates.VND }
   ];
 
-  const currencyNames = { USD: 'US Dollar', EUR: 'Euro', JPY: 'Yen Nhật', VND: 'Việt Nam Đồng', BTC: 'Bitcoin', ETH: 'Ethereum', SOL: 'Solana' };
+  const currencyNames = { USD: 'US Dollar', USDT: 'Tether USDT', EUR: 'Euro', JPY: 'Yen Nhật', VND: 'Việt Nam Đồng', BTC: 'Bitcoin', ETH: 'Ethereum', SOL: 'Solana' };
 
   body.innerHTML = "";
   pairs.forEach(p => {
@@ -392,6 +421,9 @@ export function refreshLivePricesInDOM() {
       state.mainChartInstance.update('none');
     }
   }
+
+  // Tự động cập nhật lại các chỉ số tính toán hoán đổi (Swap) theo giá Binance thời gian thực
+  calculateConversion();
 }
 
 // Uniswap-style Swap UI logic
@@ -407,9 +439,28 @@ export function calculateConversion() {
 
   if (!amountInput || !fromSelect || !toSelect || !resultInput) return;
 
-  const amountVal = parseFloat(amountInput.value);
   const fromVal = fromSelect.value;
   const toVal = toSelect.value;
+
+  // Cập nhật nhãn số dư khả dụng thực tế của token gửi và nhận
+  const swapAvailBalEl = document.getElementById("swap-available-balance");
+  const swapRecBalEl = document.getElementById("swap-receive-balance");
+  
+  if (state.walletConnected) {
+    const availBal = state.walletBalances[fromVal] || 0;
+    const recBal = state.walletBalances[toVal] || 0;
+    if (swapAvailBalEl) {
+      swapAvailBalEl.textContent = `Số dư: ${availBal.toLocaleString('en-US', { maximumFractionDigits: 6 })} ${fromVal}`;
+    }
+    if (swapRecBalEl) {
+      swapRecBalEl.textContent = `Số dư: ${recBal.toLocaleString('en-US', { maximumFractionDigits: 6 })} ${toVal}`;
+    }
+  } else {
+    if (swapAvailBalEl) swapAvailBalEl.textContent = "Số dư: --";
+    if (swapRecBalEl) swapRecBalEl.textContent = "Số dư: --";
+  }
+
+  const amountVal = parseFloat(amountInput.value);
 
   if (isNaN(amountVal) || amountVal <= 0) {
     resultInput.value = "0.00";
@@ -476,7 +527,7 @@ export function openTokenSelector(side) {
     { id: 'BTC', name: 'Bitcoin' },
     { id: 'ETH', name: 'Ethereum' },
     { id: 'SOL', name: 'Solana' },
-    { id: 'USD', name: 'US Dollar' },
+    { id: 'USDT', name: 'Tether USDT' },
     { id: 'EUR', name: 'Euro' },
     { id: 'JPY', name: 'Japanese Yen' },
     { id: 'VND', name: 'Vietnamese Dong' }
@@ -573,6 +624,33 @@ export function executeSwapTransaction() {
   // Prevent double clicking
   if (btn.disabled) return;
 
+  const fromVal = document.getElementById("conv-from").value;
+  const toVal = document.getElementById("conv-to").value;
+  const amountVal = parseFloat(document.getElementById("conv-amount").value || 0);
+  const resultVal = document.getElementById("conv-result").value;
+
+  // 1. Kiểm tra số dư tài sản bán có khả dụng trong ví không
+  const availableBal = state.walletBalances[fromVal] || 0;
+  if (availableBal < amountVal || amountVal <= 0) {
+    const errorModalHtml = `
+      <div class="flex flex-col items-center text-center">
+        <div class="w-12 h-12 rounded-full bg-rose-500/10 text-rose-555 dark:text-rose-400 flex items-center justify-center mb-4 animate-bounce">
+          <i data-lucide="alert-triangle" class="w-7 h-7"></i>
+        </div>
+        <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">Hoán đổi Thất bại!</h3>
+        <p class="text-xs text-slate-505 dark:text-slate-400 mb-6 leading-relaxed">
+          Số dư <span class="font-bold text-slate-805 dark:text-slate-202">${fromVal}</span> khả dụng trong ví của bạn không đủ để thực hiện giao dịch này.<br/>
+          Số dư hiện tại: <span class="font-mono font-bold text-rose-600 dark:text-rose-400">${availableBal.toLocaleString()} ${fromVal}</span>
+        </p>
+        <button onclick="hideModal()" class="w-full bg-slate-100 hover:bg-slate-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-slate-900 dark:text-slate-100 font-bold py-2.5 rounded-xl transition-colors cursor-pointer text-xs">
+          Quay lại
+        </button>
+      </div>
+    `;
+    showModal(errorModalHtml);
+    return;
+  }
+
   // Processing UI state
   btn.disabled = true;
   const originalHtml = btn.innerHTML;
@@ -583,11 +661,6 @@ export function executeSwapTransaction() {
   lucide.createIcons();
   btn.classList.add("opacity-80", "cursor-not-allowed");
 
-  const fromVal = document.getElementById("conv-from").value;
-  const toVal = document.getElementById("conv-to").value;
-  const amountVal = document.getElementById("conv-amount").value;
-  const resultVal = document.getElementById("conv-result").value;
-
   // Simulate network delay for processing effect
   setTimeout(() => {
     // Restore button state
@@ -596,6 +669,21 @@ export function executeSwapTransaction() {
     btn.classList.remove("opacity-80", "cursor-not-allowed");
     lucide.createIcons();
 
+    // 2. Trừ ví gửi, cộng ví nhận trong tài khoản
+    const rawResultVal = parseFloat(resultVal.replace(/,/g, ''));
+    state.walletBalances[fromVal] -= amountVal;
+    
+    if (state.walletBalances[toVal] === undefined) {
+      state.walletBalances[toVal] = 0;
+    }
+    state.walletBalances[toVal] += rawResultVal;
+
+    // 3. Tính toán lại tổng giá trị danh mục dynamically
+    recalculatePortfolioValue();
+
+    // 4. Thêm giao dịch vào lịch sử hiển thị
+    addSwapTransactionToHistory(fromVal, toVal, amountVal, resultVal);
+
     // Show success popup modal
     const modalHtml = `
       <div class="flex flex-col items-center text-center">
@@ -603,17 +691,17 @@ export function executeSwapTransaction() {
           <i data-lucide="check-circle-2" class="w-7 h-7"></i>
         </div>
         <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">Hoán đổi Thành công!</h3>
-        <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">
-          Bạn đã hoán đổi thành công <br/>
-          <span class="font-bold text-slate-800 dark:text-slate-200">${amountVal} ${fromVal}</span> lấy <span class="font-bold text-slate-800 dark:text-slate-200">${resultVal} ${toVal}</span>.
+        <p class="text-xs text-slate-550 dark:text-slate-400 mb-6 leading-relaxed">
+          Yêu cầu giao dịch đã được xác nhận trên blockchain demo.<br/>
+          Đã đổi <span class="font-bold text-slate-800 dark:text-slate-200">${amountVal.toLocaleString()} ${fromVal}</span> lấy <span class="font-bold text-slate-850 dark:text-slate-200">${resultVal} ${toVal}</span>.
         </p>
-        <button onclick="hideModal()" class="w-full bg-slate-100 hover:bg-slate-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-slate-900 dark:text-slate-100 font-semibold py-2.5 rounded-xl transition-colors cursor-pointer">
+        <button onclick="hideModal()" class="w-full bg-slate-100 hover:bg-slate-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-slate-900 dark:text-slate-100 font-semibold py-2.5 rounded-xl transition-colors cursor-pointer text-xs">
           Đóng
         </button>
       </div>
     `;
     showModal(modalHtml);
-  }, 2000);
+  }, 1500);
 }
 
 export function updateSwapButtonState() {
@@ -622,11 +710,307 @@ export function updateSwapButtonState() {
 
   if (state.walletConnected) {
     btn.innerHTML = `<span>Xác nhận Hoán đổi</span>`;
-    btn.className = "w-full bg-emerald-500 hover:bg-emerald-600 text-white py-4 rounded-2xl font-bold text-sm transition-all duration-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] cursor-pointer flex items-center justify-center gap-2";
+    btn.className = "w-full bg-gradient-to-r from-sky-400 to-sky-500 hover:from-sky-500 hover:to-sky-600 text-slate-950 py-4 rounded-2xl font-bold text-sm transition-all duration-300 shadow-[0_0_20px_rgba(56,189,248,0.35)] cursor-pointer flex items-center justify-center gap-2";
   } else {
     btn.innerHTML = `<span>Kết nối Ví để Hoán đổi</span>`;
-    btn.className = "w-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 dark:border-emerald-500/30 py-4 rounded-2xl font-bold text-sm transition-all duration-300 shadow-sm cursor-pointer flex items-center justify-center gap-2";
+    btn.className = "w-full bg-sky-500/10 hover:bg-sky-500/20 text-sky-600 dark:text-sky-400 border border-sky-500/20 dark:border-sky-500/30 py-4 rounded-2xl font-bold text-sm transition-all duration-300 shadow-sm cursor-pointer flex items-center justify-center gap-2";
   }
+
+  // Tự động cập nhật lại nhãn số dư khả dụng khi kết nối ví
+  calculateConversion();
+}
+
+// Thêm lịch sử giao dịch hoán đổi mượt mà vào dApp ledger
+export function addSwapTransactionToHistory(fromSymbol, toSymbol, fromAmt, toAmt) {
+  const container = document.getElementById("swap-history-container");
+  const list = document.getElementById("swap-history-list");
+  const wContainer = document.getElementById("wallet-history-container");
+  const wList = document.getElementById("wallet-history-list");
+  
+  // Hiển thị khung lịch sử
+  if (container) container.classList.remove("hidden");
+  if (wContainer) wContainer.classList.remove("hidden");
+  
+  // Xóa chữ placeholder trống
+  if (list && list.querySelector("div.italic")) {
+    list.innerHTML = "";
+  }
+  if (wList && wList.querySelector("div.italic")) {
+    wList.innerHTML = "";
+  }
+  
+  const now = new Date();
+  const timeStr = now.toTimeString().split(' ')[0]; // Định dạng HH:MM:SS
+  
+  // Sinh mã giao dịch blockchain giả lập giống Etherscan
+  const hexChars = "0123456789abcdef";
+  let fakeHash = "0x";
+  for (let i = 0; i < 28; i++) {
+    fakeHash += hexChars[Math.floor(Math.random() * 16)];
+  }
+  const shortHash = `${fakeHash.substring(0, 6)}...${fakeHash.substring(fakeHash.length - 4)}`;
+  
+  const makeRow = () => {
+    const row = document.createElement("div");
+    row.className = "flex items-center justify-between text-[10px] bg-slate-50 dark:bg-slate-900/40 border border-slate-205 dark:border-gray-800/40 p-2.5 rounded-xl hover:border-slate-350 dark:hover:border-gray-700 transition-all duration-300 animate-slide-down";
+    row.innerHTML = `
+      <div class="flex items-center gap-2.5">
+        <div class="flex items-center -space-x-1 shrink-0">
+          <img src="${getAssetLogo(fromSymbol)}" class="w-4 h-4 rounded-full border border-white dark:border-gray-900 bg-white object-cover" />
+          <img src="${getAssetLogo(toSymbol)}" class="w-4 h-4 rounded-full border border-white dark:border-gray-900 bg-white object-cover" />
+        </div>
+        <div>
+          <div class="font-bold text-slate-805 dark:text-slate-200">
+            Bán ${fromAmt.toLocaleString('en-US', {maximumFractionDigits: 6})} ${fromSymbol} ➔ Nhận ${toAmt} ${toSymbol}
+          </div>
+          <div class="text-[8px] text-slate-400 dark:text-slate-550 font-mono mt-0.5">
+            ${timeStr} | Tx: <span onclick="showTxDetails('${fakeHash}', '${fromSymbol}', '${toSymbol}', '${fromAmt}', '${toAmt}', '${timeStr}')" class="text-sky-500 hover:text-sky-600 dark:text-sky-400 dark:hover:text-sky-300 hover:underline cursor-pointer font-bold">${shortHash}</span>
+          </div>
+        </div>
+      </div>
+      <span class="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold uppercase text-[8px] tracking-wide shrink-0">Thành công</span>
+    `;
+    return row;
+  };
+  
+  // Chèn lên đầu danh sách của cả hai view
+  if (list) {
+    list.insertBefore(makeRow(), list.firstChild);
+  }
+  if (wList) {
+    wList.insertBefore(makeRow(), wList.firstChild);
+  }
+}
+
+// Xóa trắng nhật ký hoán đổi - Hiển thị popup xác nhận
+export function clearSwapHistory() {
+  const modalHtml = `
+    <div class="flex flex-col items-center text-center space-y-4">
+      <div class="w-12 h-12 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center">
+        <i data-lucide="alert-triangle" class="w-7 h-7"></i>
+      </div>
+      <h3 class="text-sm font-bold text-slate-900 dark:text-slate-100">Xác nhận xóa Lịch sử?</h3>
+      <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+        Bạn có chắc chắn muốn xóa toàn bộ lịch sử hoán đổi giao dịch không? Hành động này sẽ dọn sạch nhật ký và **không thể hoàn tác**.
+      </p>
+      <div class="flex gap-2.5 w-full pt-1.5">
+        <button onclick="hideModal()" class="flex-1 bg-slate-100 hover:bg-slate-205 dark:bg-gray-800 dark:hover:bg-gray-700 text-slate-800 dark:text-slate-200 font-semibold py-2.5 rounded-xl transition-all cursor-pointer text-xs">
+          Hủy bỏ
+        </button>
+        <button onclick="executeClearSwapHistory()" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-bold py-2.5 rounded-xl transition-all cursor-pointer text-xs shadow-md shadow-rose-600/20">
+          Xác nhận Xóa
+        </button>
+      </div>
+    </div>
+  `;
+  showModal(modalHtml);
+}
+
+// Thực tế xóa trắng nhật ký hoán đổi
+export function executeClearSwapHistory() {
+  const container = document.getElementById("swap-history-container");
+  const list = document.getElementById("swap-history-list");
+  const wContainer = document.getElementById("wallet-history-container");
+  const wList = document.getElementById("wallet-history-list");
+  
+  if (list) {
+    list.innerHTML = `<div class="text-[10px] text-slate-400 dark:text-slate-550 text-center py-2 italic">Chưa có giao dịch hoán đổi nào.</div>`;
+  }
+  if (wList) {
+    wList.innerHTML = `<div class="text-[10px] text-slate-400 dark:text-slate-550 text-center py-2 italic">Chưa có giao dịch hoán đổi nào.</div>`;
+  }
+  
+  if (container) container.classList.add("hidden");
+  if (wContainer) wContainer.classList.add("hidden");
+
+  hideModal();
+}
+
+window.executeClearSwapHistory = executeClearSwapHistory;
+
+// Show popup chi tiết Hash Etherscan giao dịch
+export function showTxDetails(hash, fromSymbol, toSymbol, fromAmt, toAmt, timeStr) {
+  const modalHtml = `
+    <div class="flex flex-col items-start text-left space-y-4">
+      <div class="flex justify-between items-center w-full pb-2 border-b border-slate-200 dark:border-gray-800/60">
+        <h3 class="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5 uppercase tracking-wider">
+          <i data-lucide="file-text" class="w-4 h-4 text-sky-500 dark:text-sky-400"></i>
+          Chi tiết Giao dịch
+        </h3>
+        <button onclick="hideModal()" class="text-slate-405 hover:text-slate-600 dark:hover:text-slate-300 transition-colors p-1 rounded-full">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      
+      <div class="w-full space-y-2.5 leading-relaxed text-[11px] font-medium text-slate-500 dark:text-slate-400">
+        <div class="flex justify-between border-b border-slate-100 dark:border-gray-900/10 pb-1.5">
+          <span>Mã Hash Blockchain:</span>
+          <span class="font-mono text-[9px] text-slate-805 dark:text-slate-200 break-all select-all font-bold">${hash}</span>
+        </div>
+        <div class="flex justify-between border-b border-slate-100 dark:border-gray-900/10 pb-1.5">
+          <span>Thời gian xác nhận:</span>
+          <span class="font-mono text-slate-805 dark:text-slate-200 font-bold">${timeStr}</span>
+        </div>
+        <div class="flex justify-between border-b border-slate-100 dark:border-gray-900/10 pb-1.5">
+          <span>Phương thức:</span>
+          <span class="font-bold text-sky-500 dark:text-sky-400 uppercase text-[9px] tracking-wider">Smart Contract Swap</span>
+        </div>
+        <div class="flex justify-between border-b border-slate-100 dark:border-gray-900/10 pb-1.5">
+          <span>Số lượng Trả (Pay):</span>
+          <span class="font-mono text-slate-850 dark:text-slate-100 font-bold">${fromAmt} ${fromSymbol}</span>
+        </div>
+        <div class="flex justify-between border-b border-slate-100 dark:border-gray-900/10 pb-1.5">
+          <span>Số lượng Nhận (Receive):</span>
+          <span class="font-mono text-slate-850 dark:text-slate-100 font-bold">${toAmt} ${toSymbol}</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Trạng thái mạng:</span>
+          <span class="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-[9px] uppercase tracking-wider">Confirmed (Block 192842)</span>
+        </div>
+      </div>
+      
+      <button onclick="hideModal()" class="w-full bg-slate-100 hover:bg-slate-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-slate-900 dark:text-slate-100 font-bold py-2.5 rounded-xl transition-colors cursor-pointer text-xs mt-2">
+        Đóng
+      </button>
+    </div>
+  `;
+  showModal(modalHtml);
+}
+
+// Bật tắt chỉ báo SMA vẽ trên main chart
+export function toggleSMAIndicator() {
+  refreshMainChart();
+}
+
+// Render dữ liệu Bảng điều khiển ví Web3
+export function renderWalletDashboard() {
+  const panel = document.getElementById("wallet-view-panel");
+  if (!panel || panel.classList.contains("hidden")) return;
+
+  const disconnectedState = document.getElementById("wallet-disconnected-state");
+  const connectedState = document.getElementById("wallet-connected-state");
+
+  if (!state.walletConnected) {
+    if (disconnectedState) disconnectedState.classList.remove("hidden");
+    if (connectedState) connectedState.classList.add("hidden");
+    return;
+  }
+
+  if (disconnectedState) disconnectedState.classList.add("hidden");
+  if (connectedState) connectedState.classList.remove("hidden");
+
+  // Cập nhật Địa chỉ ví & Giá trị ví
+  const addressEl = document.getElementById("wallet-dashboard-address");
+  const totalUsdEl = document.getElementById("wallet-dashboard-total-usd");
+  const totalVndEl = document.getElementById("wallet-dashboard-total-vnd");
+
+  if (addressEl) addressEl.textContent = state.walletAddress;
+  if (totalUsdEl) {
+    totalUsdEl.textContent = `$${state.walletBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  }
+  if (totalVndEl) {
+    const totalVnd = state.walletBalance * state.forexRates.VND;
+    totalVndEl.textContent = `≈ ${totalVnd.toLocaleString('vi-VN')} VND`;
+  }
+
+  // Cập nhật số dư chi tiết của các token
+  const holdingsContainer = document.getElementById("wallet-dashboard-holdings");
+  if (holdingsContainer) {
+    holdingsContainer.innerHTML = "";
+    
+    Object.keys(state.walletBalances).forEach(symbol => {
+      const balance = state.walletBalances[symbol];
+      const usdPrice = getUSDPrice(symbol);
+      const usdVal = balance * usdPrice;
+      const vndVal = usdVal * state.forexRates.VND;
+      
+      const logoUrl = getAssetLogo(symbol);
+      
+      const card = document.createElement("div");
+      card.className = "bg-white/60 dark:bg-[#121824]/60 backdrop-blur-md border border-slate-200 dark:border-gray-800/80 rounded-2xl p-5 flex flex-col justify-between h-36 hover:bg-slate-50 dark:hover:bg-[#151c2c] transition-all duration-300 shadow-sm";
+      card.innerHTML = `
+        <div class="flex justify-between items-start">
+          <div class="flex items-center gap-3">
+            <div class="h-10 w-10 rounded-full bg-slate-100 dark:bg-[#090D16] border border-slate-200 dark:border-gray-800/80 flex items-center justify-center shrink-0 overflow-hidden shadow-sm">
+              <img src="${logoUrl}" alt="${symbol}" class="h-6 w-6 object-contain" />
+            </div>
+            <div>
+              <h4 class="text-sm font-bold text-slate-800 dark:text-slate-200">${symbol}</h4>
+              <span class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">${symbol === 'USD' || symbol === 'VND' ? 'Fiat' : 'Crypto'}</span>
+            </div>
+          </div>
+          <div class="flex flex-col items-end">
+            <span class="text-sm font-extrabold text-slate-900 dark:text-slate-100 font-mono">${balance.toLocaleString('en-US', { maximumFractionDigits: 6 })}</span>
+            <span class="text-[10px] text-slate-400 dark:text-slate-550 font-medium font-mono mt-0.5">${symbol === 'USD' ? '$1.00' : symbol === 'VND' ? '1.00 VND' : '$' + usdPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+          </div>
+        </div>
+        <div class="border-t border-slate-100 dark:border-gray-800/60 pt-3 flex justify-between items-center text-[10px] font-bold text-slate-400 dark:text-slate-505">
+          <span>Ước tính giá trị:</span>
+          <div class="text-right">
+            <span class="text-slate-800 dark:text-slate-200 font-mono font-bold">$${usdVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            <span class="text-slate-400 dark:text-slate-500 font-mono text-[9px] font-medium block">≈ ${vndVal.toLocaleString('vi-VN')} VND</span>
+          </div>
+        </div>
+      `;
+      holdingsContainer.appendChild(card);
+    });
+  }
+  lucide.createIcons();
+}
+
+// Vòi phun Demo Faucet nạp tiền
+export function triggerFaucet(symbol) {
+  if (!state.walletConnected) return;
+
+  const amountToAdd = {
+    BTC: 0.05,
+    ETH: 0.5,
+    SOL: 5.0,
+    USDT: 1000.0,
+    VND: 20000000.0
+  };
+
+  const qty = amountToAdd[symbol] || 0;
+  state.walletBalances[symbol] = (state.walletBalances[symbol] || 0) + qty;
+  
+  recalculatePortfolioValue();
+  renderWalletDashboard();
+  showToast("Nhận Faucet thành công!", `Bạn đã nhận thêm ${qty.toLocaleString()} ${symbol} vào ví.`);
+}
+
+// Thiết lập số lượng hoán đổi Min hoặc Max dựa trên ví khả dụng
+export function setSwapAmount(mode) {
+  const fromSelect = document.getElementById("conv-from");
+  const amountInput = document.getElementById("conv-amount");
+  if (!fromSelect || !amountInput) return;
+
+  const fromVal = fromSelect.value;
+
+  if (!state.walletConnected) {
+    showToast("Ví chưa kết nối", "Vui lòng kết nối ví Web3 để kiểm tra số dư khả dụng.");
+    return;
+  }
+
+  const availBal = state.walletBalances[fromVal] || 0;
+
+  if (mode === 'max') {
+    amountInput.value = availBal;
+  } else if (mode === 'min') {
+    // Định nghĩa mức tối thiểu tượng trưng cho từng đồng tiền
+    const mins = {
+      BTC: 0.0001,
+      ETH: 0.001,
+      SOL: 0.01,
+      USDT: 1.0,
+      EUR: 1.0,
+      JPY: 100.0,
+      VND: 10000.0
+    };
+    amountInput.value = mins[fromVal] || 0.001;
+  }
+
+  // Quy đổi lập tức
+  calculateConversion();
 }
 
 window.calculateConversion = calculateConversion;
@@ -635,3 +1019,10 @@ window.swapConverterCurrencies = swapConverterCurrencies;
 window.executeSwapTransaction = executeSwapTransaction;
 window.openTokenSelector = openTokenSelector;
 window.selectToken = selectToken;
+window.toggleSMAIndicator = toggleSMAIndicator;
+window.addSwapTransactionToHistory = addSwapTransactionToHistory;
+window.clearSwapHistory = clearSwapHistory;
+window.showTxDetails = showTxDetails;
+window.renderWalletDashboard = renderWalletDashboard;
+window.triggerFaucet = triggerFaucet;
+window.setSwapAmount = setSwapAmount;

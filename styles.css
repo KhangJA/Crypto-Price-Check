@@ -1,49 +1,87 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 body {
   font-family: 'Inter', sans-serif;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Custom Scrollbars */
+/* Custom Scrollbars - Obsidian Style */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 .dark ::-webkit-scrollbar-track {
-  background: #090D16;
+  background: #06080F;
 }
 ::-webkit-scrollbar-thumb {
   background: #CBD5E1;
-  border-radius: 4px;
+  border-radius: 99px;
 }
 .dark ::-webkit-scrollbar-thumb {
-  background: #1E293B;
+  background: #1A2035;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #94A3B8;
 }
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #252F48;
 }
 
-/* Price Flashing Animations */
+/* Price Flashing Animations - Premium soft glow */
 @keyframes flashGreen {
-  0% { background-color: rgba(16, 185, 129, 0.15); }
-  100% { background-color: transparent; }
+  0% { 
+    background-color: rgba(16, 185, 129, 0.12); 
+    box-shadow: inset 0 0 10px rgba(16, 185, 129, 0.08);
+  }
+  100% { background-color: transparent; box-shadow: none; }
 }
 @keyframes flashRed {
-  0% { background-color: rgba(239, 68, 68, 0.15); }
-  100% { background-color: transparent; }
+  0% { 
+    background-color: rgba(244, 63, 94, 0.12); 
+    box-shadow: inset 0 0 10px rgba(244, 63, 94, 0.08);
+  }
+  100% { background-color: transparent; box-shadow: none; }
 }
 .tick-up {
-  animation: flashGreen 0.7s ease-out;
+  animation: flashGreen 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 .tick-down {
-  animation: flashRed 0.7s ease-out;
+  animation: flashRed 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Glassmorphism Panel styles */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dark .glass-panel {
+  background: rgba(11, 15, 25, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.glass-panel:hover {
+  border-color: rgba(56, 189, 248, 0.2);
+  box-shadow: 0 10px 30px -15px rgba(0, 0, 0, 0.05);
+}
+
+.dark .glass-panel:hover {
+  border-color: rgba(56, 189, 248, 0.15);
+  box-shadow: 0 10px 30px -20px rgba(0, 0, 0, 0.7);
+}
+
+/* Monospace layout for finance grids */
+.font-mono-finance {
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: -0.02em;
 }
 
 /* Loading Skeleton Animation */
@@ -53,7 +91,7 @@ body {
   animation: loading 1.5s infinite;
 }
 .dark .skeleton {
-  background: linear-gradient(90deg, #121824 25%, #1e293b 50%, #121824 75%);
+  background: linear-gradient(90deg, #0B0F19 25%, #182033 50%, #0B0F19 75%);
   background-size: 200% 100%;
 }
 @keyframes loading {
@@ -67,4 +105,31 @@ nav button i > svg {
   stroke: currentColor !important;
   width: 1rem;
   height: 1rem;
+}
+
+/* Correlation Heatmap transition styles */
+.heatmap-cell {
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+/* Soft gradient inputs for professional terminal look */
+.dark input[type="number"]:not(.bg-transparent), .dark select {
+  background: rgba(6, 8, 15, 0.7);
+}
+.dark input[type="number"]:focus, .dark select:focus {
+  border-color: rgba(56, 189, 248, 0.45);
+  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.2);
+}
+
+/* Hide default HTML5 number spinners for a clean, non-industrial dApp look */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield; /* Firefox */
+}
+input[type="number"].bg-transparent {
+  background: transparent !important;
 }

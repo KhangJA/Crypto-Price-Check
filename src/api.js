@@ -1,5 +1,5 @@
 // api.js
-import { state } from './state.js';
+import { state, recalculatePortfolioValue } from './state.js';
 import { updateMoversWidget, populateForexTable, flashCardTick, refreshLivePricesInDOM, calculateConversion, updateSwapIcons } from './ui.js';
 
 export async function synchronizeForexRates() {
@@ -122,6 +122,7 @@ export function initPriceTickEngine() {
     refreshLivePricesInDOM();
     updateMoversWidget();
     calculateConversion();
+    recalculatePortfolioValue();
   }, 5000);
 }
 

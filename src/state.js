@@ -55,6 +55,13 @@ export const state = {
   walletConnected: false,
   walletAddress: '',
   walletBalance: 0,
+  walletBalances: {
+    BTC: 0.15,
+    ETH: 1.8,
+    SOL: 12.0,
+    USDT: 1500.0,
+    VND: 50000000.0
+  },
   searchQuery: '',
   activeTab: 'all',
   mainChartInstance: null
@@ -64,7 +71,7 @@ export function getUSDPrice(symbol) {
   if (state.assets[symbol]) {
     return state.assets[symbol].price;
   }
-  if (symbol === 'USD') return 1.0;
+  if (symbol === 'USDT' || symbol === 'USD') return 1.0;
   if (state.forexRates[symbol]) {
     return 1.0 / state.forexRates[symbol];
   }
@@ -77,9 +84,34 @@ export function getAssetLogo(symbol) {
   }
   const fiatLogos = {
     USD: "https://flagcdn.com/w80/us.png",
+    USDT: "https://assets.coingecko.com/coins/images/325/small/Tether.png",
     EUR: "https://flagcdn.com/w80/eu.png",
     JPY: "https://flagcdn.com/w80/jp.png",
     VND: "https://flagcdn.com/w80/vn.png"
   };
   return fiatLogos[symbol] || "";
+}
+
+export function recalculatePortfolioValue() {
+  if (!state.walletConnected) return 0;
+  let totalUSD = 0;
+  Object.keys(state.walletBalances).forEach(symbol => {
+    const qty = state.walletBalances[symbol];
+    const price = getUSDPrice(symbol);
+    totalUSD += qty * price;
+  });
+  state.walletBalance = totalUSD;
+  
+  // Cập nhật DOM hiển thị ở góc trên bên phải
+  const portfolioVal = document.getElementById("portfolio-value");
+  if (portfolioVal) {
+    portfolioVal.textContent = `$${totalUSD.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  }
+  
+  // Tự động làm mới danh mục ví nếu tab Ví của tôi đang mở
+  if (window.renderWalletDashboard) {
+    window.renderWalletDashboard();
+  }
+  
+  return totalUSD;
 }

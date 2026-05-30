@@ -1,5 +1,5 @@
 // wallet.js
-import { state } from './state.js';
+import { state, recalculatePortfolioValue } from './state.js';
 import { updateSwapButtonState } from './ui.js';
 
 export function toggleWalletConnection() {
@@ -17,14 +17,12 @@ export function toggleWalletConnection() {
       // Generate a mock wallet address
       const randomHex = Math.floor(Math.random() * 16777215).toString(16).toUpperCase();
       state.walletAddress = `0x71C...${randomHex.padStart(4, '0')}`;
-      state.walletBalance = (Math.random() * 50000 + 10000).toFixed(2);
       
       btnText.textContent = state.walletAddress;
-      btnDot.className = "w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]";
+      btnDot.className = "w-1.5 h-1.5 rounded-full bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.5)]";
       
-      if (portfolioVal) {
-        portfolioVal.textContent = `$${parseFloat(state.walletBalance).toLocaleString('en-US')}`;
-      }
+      // Tính toán giá trị ròng danh mục thực tế từ số dư tài sản
+      recalculatePortfolioValue();
       
       updateSwapButtonState();
       showToast("Đã kết nối Ví", "Thành công kết nối với nhà cung cấp Web3.");

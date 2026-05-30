@@ -100,7 +100,7 @@ function evaluateTradingHours() {
     if (nyseStatusEl) {
       if (estHour >= 9 && estHour < 16) {
         nyseStatusEl.innerHTML = `<span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>OPEN`;
-        nyseStatusEl.className = "flex items-center gap-1.5 text-emerald-555 dark:text-emerald-400 font-bold text-[11px]";
+        nyseStatusEl.className = "flex items-center gap-1.5 text-emerald-500 dark:text-emerald-400 font-bold text-[11px]";
       } else {
         nyseStatusEl.innerHTML = `<span class="h-1.5 w-1.5 rounded-full bg-red-500"></span>CLOSED`;
         nyseStatusEl.className = "flex items-center gap-1.5 text-red-500 font-medium text-[11px]";
@@ -114,7 +114,7 @@ function evaluateTradingHours() {
       fxStatusEl.className = "flex items-center gap-1.5 text-red-500 font-medium text-[11px]";
     } else {
       fxStatusEl.innerHTML = `<span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>OPEN`;
-      fxStatusEl.className = "flex items-center gap-1.5 text-emerald-555 dark:text-emerald-400 font-bold text-[11px]";
+      fxStatusEl.className = "flex items-center gap-1.5 text-emerald-500 dark:text-emerald-400 font-bold text-[11px]";
     }
   }
 }
@@ -172,17 +172,17 @@ function bindMobileDrawer() {
 function switchTab(tab) {
   state.activeTab = tab;
 
-  const tabs = ['all', 'crypto', 'stock', 'forex'];
+  const tabs = ['all', 'crypto', 'stock', 'forex', 'wallet'];
   tabs.forEach(t => {
     const btn = document.getElementById(`nav-${t}`);
     if (!btn) return;
     const icon = btn.querySelector("i");
     
     if (t === tab) {
-      btn.className = "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-semibold transition-all duration-200 bg-slate-100 dark:bg-gray-800/40 text-slate-900 dark:text-slate-100 border-l-2 border-emerald-500";
+      btn.className = "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-semibold transition-all duration-200 bg-slate-100 dark:bg-gray-800/40 text-slate-900 dark:text-slate-100 border-l-2 border-sky-400";
       if (icon) {
         icon.className = "w-4 h-4";
-        icon.style.color = "#10B981";
+        icon.style.color = "#38BDF8";
       }
     } else {
       btn.className = "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-semibold transition-all duration-200 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-gray-800/30 hover:text-slate-900 dark:hover:text-slate-100 border-l-2 border-transparent";
@@ -209,23 +209,38 @@ function switchTab(tab) {
     } else if (tab === 'forex') {
       title.textContent = "Hoán đổi Ngoại hối Toàn cầu";
       subtitle.textContent = "Hoán đổi phi tập trung và chuyển đổi tiền tệ theo thời gian thực.";
+    } else if (tab === 'wallet') {
+      title.textContent = "Ví của tôi (Web3 Dashboard)";
+      subtitle.textContent = "Quản lý số dư danh mục đầu tư phi tập trung thời gian thực và nhận Faucet thử nghiệm.";
     }
   }
 
   const dView = document.getElementById("dashboard-view-panel");
   const fView = document.getElementById("forex-view-panel");
+  const wView = document.getElementById("wallet-view-panel");
   const fDest = document.getElementById("forex-converter-destination");
   const sDest = document.getElementById("sidebar-widgets-container");
   const convWidget = document.getElementById("converter-widget");
 
   if (tab === 'forex') {
     if (dView) dView.classList.add("hidden");
+    if (wView) wView.classList.add("hidden");
     if (fView) fView.classList.remove("hidden");
     if (fDest && convWidget) {
       fDest.appendChild(convWidget);
     }
+  } else if (tab === 'wallet') {
+    if (dView) dView.classList.add("hidden");
+    if (fView) fView.classList.add("hidden");
+    if (wView) wView.classList.remove("hidden");
+    
+    // Tự động render dashboard ví
+    if (window.renderWalletDashboard) {
+      window.renderWalletDashboard();
+    }
   } else {
     if (fView) fView.classList.add("hidden");
+    if (wView) wView.classList.add("hidden");
     if (dView) dView.classList.remove("hidden");
     if (sDest && convWidget) {
       sDest.insertBefore(convWidget, sDest.firstChild);
