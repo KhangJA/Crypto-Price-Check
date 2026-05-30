@@ -161,6 +161,11 @@ function bindMobileDrawer() {
   toggle.addEventListener("click", openDrawer);
   overlay.addEventListener("click", closeDrawer);
 
+  const closeBtn = document.getElementById("mobile-close-btn");
+  if (closeBtn) {
+    closeBtn.addEventListener("click", closeDrawer);
+  }
+
   const navBtns = sidebar.querySelectorAll("nav button");
   navBtns.forEach(btn => {
     btn.addEventListener("click", () => {

@@ -28,10 +28,10 @@ export function refreshAssetsUI() {
 
   if (filteredKeys.length === 0 && state.activeTab !== 'forex') {
     grid.innerHTML = `
-      <div class="col-span-full py-10 flex flex-col items-center justify-center border border-dashed border-slate-205 dark:border-gray-800 rounded-xl bg-slate-50 dark:bg-gray-950/20">
+      <div class="col-span-full py-10 flex flex-col items-center justify-center border border-dashed border-slate-200 dark:border-gray-800 rounded-xl bg-slate-50 dark:bg-gray-950/20">
         <i data-lucide="help-circle" class="w-8 h-8 text-slate-400 dark:text-slate-600 mb-2"></i>
-        <span class="text-sm font-semibold text-slate-550 dark:text-slate-400">Không tìm thấy tài sản</span>
-        <span class="text-[11px] text-slate-400 dark:text-slate-505 mt-1">Vui lòng thử lại với từ khóa khác.</span>
+        <span class="text-sm font-semibold text-slate-500 dark:text-slate-400">Không tìm thấy tài sản</span>
+        <span class="text-[11px] text-slate-400 dark:text-slate-500 mt-1">Vui lòng thử lại với từ khóa khác.</span>
       </div>
     `;
     lucide.createIcons();
@@ -51,7 +51,7 @@ export function refreshAssetsUI() {
     const isActive = state.activeAsset === key;
 
     const card = document.createElement("div");
-    card.className = `group rounded-2xl border p-5 flex flex-col justify-between h-40 bg-white/60 dark:bg-[#121824]/60 backdrop-blur-md hover:bg-slate-50 dark:hover:bg-[#151c2c] transition-all duration-300 cursor-pointer ${
+    card.className = `group rounded-2xl border p-5 flex flex-col justify-between h-40 bg-white/60 dark:bg-[#121824]/60 backdrop-blur-md hover:bg-slate-50 dark:hover:bg-[#151c2c] transition-all duration-300 cursor-pointer w-[285px] shrink-0 snap-start md:w-auto ${
       isActive 
         ? 'border-sky-400 dark:border-sky-400/50 shadow-[0_0_15px_rgba(56,189,248,0.15)]' 
         : 'border-slate-200 dark:border-gray-800/80 hover:border-slate-300 dark:hover:border-gray-700/80'
@@ -352,8 +352,8 @@ export function populateForexTable() {
       <td class="py-4 px-4">
         <div class="flex items-center gap-3">
           <div class="flex items-center -space-x-2">
-            <img src="${getAssetLogo(p.base)}" alt="${p.base}" class="w-7 h-7 rounded-full object-cover border-2 border-white dark:border-[#121824] shadow-sm" />
-            <img src="${getAssetLogo(p.quote)}" alt="${p.quote}" class="w-7 h-7 rounded-full object-cover border-2 border-white dark:border-[#121824] shadow-sm" />
+            <img src="${getAssetLogo(p.base)}" alt="${p.base}" class="w-7 h-7 rounded-full object-cover border-2 border-white dark:border-[#121824] shadow-sm bg-white shrink-0" />
+            <img src="${getAssetLogo(p.quote)}" alt="${p.quote}" class="w-7 h-7 rounded-full object-cover border-2 border-white dark:border-[#121824] shadow-sm bg-white shrink-0" />
           </div>
           <div class="flex flex-col">
             <span class="font-bold text-slate-900 dark:text-slate-100 text-xs tracking-wide">${p.base} / ${p.quote}</span>
@@ -538,7 +538,7 @@ export function openTokenSelector(side) {
     return `
       <div onclick="selectToken('${side}', '${t.id}')" class="flex items-center justify-between p-3 hover:bg-slate-50 dark:hover:bg-gray-800/50 rounded-xl cursor-pointer transition-colors border border-transparent hover:border-slate-200 dark:hover:border-gray-700">
         <div class="flex items-center gap-3">
-          <img src="${logo}" class="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-gray-700 shadow-sm bg-white" />
+          <img src="${logo}" class="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-gray-700 shadow-sm bg-white shrink-0" />
           <div class="flex flex-col">
             <span class="font-bold text-slate-900 dark:text-slate-100 leading-tight">${t.id}</span>
             <span class="text-xs text-slate-500 dark:text-slate-400">${t.name}</span>
@@ -638,8 +638,8 @@ export function executeSwapTransaction() {
           <i data-lucide="alert-triangle" class="w-7 h-7"></i>
         </div>
         <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">Hoán đổi Thất bại!</h3>
-        <p class="text-xs text-slate-505 dark:text-slate-400 mb-6 leading-relaxed">
-          Số dư <span class="font-bold text-slate-805 dark:text-slate-202">${fromVal}</span> khả dụng trong ví của bạn không đủ để thực hiện giao dịch này.<br/>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
+          Số dư <span class="font-bold text-slate-800 dark:text-slate-200">${fromVal}</span> khả dụng trong ví của bạn không đủ để thực hiện giao dịch này.<br/>
           Số dư hiện tại: <span class="font-mono font-bold text-rose-600 dark:text-rose-400">${availableBal.toLocaleString()} ${fromVal}</span>
         </p>
         <button onclick="hideModal()" class="w-full bg-slate-100 hover:bg-slate-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-slate-900 dark:text-slate-100 font-bold py-2.5 rounded-xl transition-colors cursor-pointer text-xs">
@@ -691,9 +691,9 @@ export function executeSwapTransaction() {
           <i data-lucide="check-circle-2" class="w-7 h-7"></i>
         </div>
         <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">Hoán đổi Thành công!</h3>
-        <p class="text-xs text-slate-550 dark:text-slate-400 mb-6 leading-relaxed">
+        <p class="text-xs text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
           Yêu cầu giao dịch đã được xác nhận trên blockchain demo.<br/>
-          Đã đổi <span class="font-bold text-slate-800 dark:text-slate-200">${amountVal.toLocaleString()} ${fromVal}</span> lấy <span class="font-bold text-slate-850 dark:text-slate-200">${resultVal} ${toVal}</span>.
+          Đã đổi <span class="font-bold text-slate-800 dark:text-slate-200">${amountVal.toLocaleString()} ${fromVal}</span> lấy <span class="font-bold text-slate-800 dark:text-slate-200">${resultVal} ${toVal}</span>.
         </p>
         <button onclick="hideModal()" class="w-full bg-slate-100 hover:bg-slate-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-slate-900 dark:text-slate-100 font-semibold py-2.5 rounded-xl transition-colors cursor-pointer text-xs">
           Đóng
@@ -752,18 +752,18 @@ export function addSwapTransactionToHistory(fromSymbol, toSymbol, fromAmt, toAmt
   
   const makeRow = () => {
     const row = document.createElement("div");
-    row.className = "flex items-center justify-between text-[10px] bg-slate-50 dark:bg-slate-900/40 border border-slate-205 dark:border-gray-800/40 p-2.5 rounded-xl hover:border-slate-350 dark:hover:border-gray-700 transition-all duration-300 animate-slide-down";
+    row.className = "flex items-center justify-between text-[10px] bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-gray-800/40 p-2.5 rounded-xl hover:border-slate-350 dark:hover:border-gray-700 transition-all duration-300 animate-slide-down";
     row.innerHTML = `
       <div class="flex items-center gap-2.5">
         <div class="flex items-center -space-x-1 shrink-0">
-          <img src="${getAssetLogo(fromSymbol)}" class="w-4 h-4 rounded-full border border-white dark:border-gray-900 bg-white object-cover" />
-          <img src="${getAssetLogo(toSymbol)}" class="w-4 h-4 rounded-full border border-white dark:border-gray-900 bg-white object-cover" />
+          <img src="${getAssetLogo(fromSymbol)}" class="w-4 h-4 rounded-full border border-white dark:border-gray-900 bg-white object-cover shrink-0" />
+          <img src="${getAssetLogo(toSymbol)}" class="w-4 h-4 rounded-full border border-white dark:border-gray-900 bg-white object-cover shrink-0" />
         </div>
         <div>
-          <div class="font-bold text-slate-805 dark:text-slate-200">
+          <div class="font-bold text-slate-800 dark:text-slate-200">
             Bán ${fromAmt.toLocaleString('en-US', {maximumFractionDigits: 6})} ${fromSymbol} ➔ Nhận ${toAmt} ${toSymbol}
           </div>
-          <div class="text-[8px] text-slate-400 dark:text-slate-550 font-mono mt-0.5">
+          <div class="text-[8px] text-slate-400 dark:text-slate-500 font-mono mt-0.5">
             ${timeStr} | Tx: <span onclick="showTxDetails('${fakeHash}', '${fromSymbol}', '${toSymbol}', '${fromAmt}', '${toAmt}', '${timeStr}')" class="text-sky-500 hover:text-sky-600 dark:text-sky-400 dark:hover:text-sky-300 hover:underline cursor-pointer font-bold">${shortHash}</span>
           </div>
         </div>
@@ -794,7 +794,7 @@ export function clearSwapHistory() {
         Bạn có chắc chắn muốn xóa toàn bộ lịch sử hoán đổi giao dịch không? Hành động này sẽ dọn sạch nhật ký và **không thể hoàn tác**.
       </p>
       <div class="flex gap-2.5 w-full pt-1.5">
-        <button onclick="hideModal()" class="flex-1 bg-slate-100 hover:bg-slate-205 dark:bg-gray-800 dark:hover:bg-gray-700 text-slate-800 dark:text-slate-200 font-semibold py-2.5 rounded-xl transition-all cursor-pointer text-xs">
+        <button onclick="hideModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-slate-800 dark:text-slate-200 font-semibold py-2.5 rounded-xl transition-all cursor-pointer text-xs">
           Hủy bỏ
         </button>
         <button onclick="executeClearSwapHistory()" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-bold py-2.5 rounded-xl transition-all cursor-pointer text-xs shadow-md shadow-rose-600/20">
@@ -814,10 +814,10 @@ export function executeClearSwapHistory() {
   const wList = document.getElementById("wallet-history-list");
   
   if (list) {
-    list.innerHTML = `<div class="text-[10px] text-slate-400 dark:text-slate-550 text-center py-2 italic">Chưa có giao dịch hoán đổi nào.</div>`;
+    list.innerHTML = `<div class="text-[10px] text-slate-400 dark:text-slate-500 text-center py-2 italic">Chưa có giao dịch hoán đổi nào.</div>`;
   }
   if (wList) {
-    wList.innerHTML = `<div class="text-[10px] text-slate-400 dark:text-slate-550 text-center py-2 italic">Chưa có giao dịch hoán đổi nào.</div>`;
+    wList.innerHTML = `<div class="text-[10px] text-slate-400 dark:text-slate-500 text-center py-2 italic">Chưa có giao dịch hoán đổi nào.</div>`;
   }
   
   if (container) container.classList.add("hidden");
@@ -845,11 +845,11 @@ export function showTxDetails(hash, fromSymbol, toSymbol, fromAmt, toAmt, timeSt
       <div class="w-full space-y-2.5 leading-relaxed text-[11px] font-medium text-slate-500 dark:text-slate-400">
         <div class="flex justify-between border-b border-slate-100 dark:border-gray-900/10 pb-1.5">
           <span>Mã Hash Blockchain:</span>
-          <span class="font-mono text-[9px] text-slate-805 dark:text-slate-200 break-all select-all font-bold">${hash}</span>
+          <span class="font-mono text-[9px] text-slate-800 dark:text-slate-200 break-all select-all font-bold">${hash}</span>
         </div>
         <div class="flex justify-between border-b border-slate-100 dark:border-gray-900/10 pb-1.5">
           <span>Thời gian xác nhận:</span>
-          <span class="font-mono text-slate-805 dark:text-slate-200 font-bold">${timeStr}</span>
+          <span class="font-mono text-slate-800 dark:text-slate-200 font-bold">${timeStr}</span>
         </div>
         <div class="flex justify-between border-b border-slate-100 dark:border-gray-900/10 pb-1.5">
           <span>Phương thức:</span>
@@ -857,11 +857,11 @@ export function showTxDetails(hash, fromSymbol, toSymbol, fromAmt, toAmt, timeSt
         </div>
         <div class="flex justify-between border-b border-slate-100 dark:border-gray-900/10 pb-1.5">
           <span>Số lượng Trả (Pay):</span>
-          <span class="font-mono text-slate-850 dark:text-slate-100 font-bold">${fromAmt} ${fromSymbol}</span>
+          <span class="font-mono text-slate-800 dark:text-slate-100 font-bold">${fromAmt} ${fromSymbol}</span>
         </div>
         <div class="flex justify-between border-b border-slate-100 dark:border-gray-900/10 pb-1.5">
           <span>Số lượng Nhận (Receive):</span>
-          <span class="font-mono text-slate-850 dark:text-slate-100 font-bold">${toAmt} ${toSymbol}</span>
+          <span class="font-mono text-slate-800 dark:text-slate-100 font-bold">${toAmt} ${toSymbol}</span>
         </div>
         <div class="flex justify-between">
           <span>Trạng thái mạng:</span>
@@ -927,7 +927,7 @@ export function renderWalletDashboard() {
       const logoUrl = getAssetLogo(symbol);
       
       const card = document.createElement("div");
-      card.className = "bg-white/60 dark:bg-[#121824]/60 backdrop-blur-md border border-slate-200 dark:border-gray-800/80 rounded-2xl p-5 flex flex-col justify-between h-36 hover:bg-slate-50 dark:hover:bg-[#151c2c] transition-all duration-300 shadow-sm";
+      card.className = "bg-white/60 dark:bg-[#121824]/60 backdrop-blur-md border border-slate-200 dark:border-gray-800/80 rounded-2xl p-4 sm:p-5 flex flex-col justify-between h-36 hover:bg-slate-50 dark:hover:bg-[#151c2c] transition-all duration-300 shadow-sm";
       card.innerHTML = `
         <div class="flex justify-between items-start">
           <div class="flex items-center gap-3">
@@ -941,10 +941,10 @@ export function renderWalletDashboard() {
           </div>
           <div class="flex flex-col items-end">
             <span class="text-sm font-extrabold text-slate-900 dark:text-slate-100 font-mono">${balance.toLocaleString('en-US', { maximumFractionDigits: 6 })}</span>
-            <span class="text-[10px] text-slate-400 dark:text-slate-550 font-medium font-mono mt-0.5">${symbol === 'USD' ? '$1.00' : symbol === 'VND' ? '1.00 VND' : '$' + usdPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+            <span class="text-[10px] text-slate-400 dark:text-slate-500 font-medium font-mono mt-0.5">${symbol === 'USD' ? '$1.00' : symbol === 'VND' ? '1.00 VND' : '$' + usdPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
           </div>
         </div>
-        <div class="border-t border-slate-100 dark:border-gray-800/60 pt-3 flex justify-between items-center text-[10px] font-bold text-slate-400 dark:text-slate-505">
+        <div class="border-t border-slate-100 dark:border-gray-800/60 pt-3 flex justify-between items-center text-[10px] font-bold text-slate-400 dark:text-slate-500">
           <span>Ước tính giá trị:</span>
           <div class="text-right">
             <span class="text-slate-800 dark:text-slate-200 font-mono font-bold">$${usdVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
