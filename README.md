@@ -1,8 +1,6 @@
 # Crypto Price Checker
 
-Chào mọi người! Đây là một dự án nhỏ mà mình làm để tạo ra một bảng điều khiển (dashboard) theo dõi tài chính cá nhân. Giao diện được thiết kế theo phong cách Web3 (phi tập trung) hiện đại, trực quan và rất dễ tiếp cận.
-
-Dự án này cực kỳ phù hợp cho những bạn nào muốn tham khảo cách làm một giao diện tài chính sạch đẹp, tích hợp biểu đồ real-time hoặc tìm hiểu cách hoạt động của một ứng dụng Swap tiền điện tử.
+Chào mọi người! Đây là một dự án nhỏ mà mình làm một cái demo dashboard theo dõi tài chính cá nhân. Giao diện được thiết kế theo phong cách Web3 (phi tập trung) hiện đại và dễ tiếp cận.
 
 ---
 
@@ -17,21 +15,17 @@ Dự án này cực kỳ phù hợp cho những bạn nào muốn tham khảo c�
 
 ---
 
-## Công nghệ mình sử dụng
+## Công nghệ sử dụng
 
-Để giữ cho dự án nhẹ nhàng và dễ chạy nhất có thể, mình chủ yếu dùng các công nghệ thuần:
-- **Frontend:** HTML5, JavaScript thuần (sử dụng ES6 Modules giúp chia tách code gọn gàng).
-- **Styling:** Tailwind CSS (giúp lên giao diện nhanh và responsive tốt).
+Để giữ cho project dễ chạy, mình chủ yếu dùng các công nghệ thuần:
+- **Frontend:** HTML, JavaScript thuần.
+- **Styling:** Tailwind CSS (giúp tạo giao diện nhanh và responsive tốt).
 - **Chart:** Chart.js (thư viện vẽ biểu đồ cực kỳ gọn nhẹ).
-- **Icons & Avatar:** Sử dụng kết hợp Lucide Icons, UI-Avatars và CryptoLogos để tối ưu hiển thị.
+- **Icons & Avatar:** Sử dụng kết hợp Lucide Icons, UI-Avatars và CryptoLogos để hiển thị.
 
 ---
 
 ## Cách chạy thử trên máy của bạn
-
-Vì dự án này mình có chia code theo dạng ES6 Modules, nên trình duyệt sẽ không cho phép bạn click đúp mở trực tiếp file index.html (sẽ dính lỗi CORS). Bạn cần chạy nó qua một Local Server (máy chủ cục bộ). 
-
-Bạn có thể chọn 1 trong 3 cách siêu nhanh dưới đây:
 
 ### Cách 1: Dùng VS Code (Khuyên dùng - Dễ nhất)
 1. Bạn vào mục Extensions trên VS Code, tìm và cài tiện ích tên là Live Server.
@@ -56,8 +50,6 @@ Sau đó mở trình duyệt và truy cập vào địa chỉ: http://localhost:
 ## Thử nghiệm tính năng Swap (Hoán đổi) như thế nào?
 
 Nếu bạn muốn test thử tính năng Swap, hãy làm theo các bước này nhé:
-1. Nhìn lên góc trên cùng bên phải, bấm nút "Kết nối Ví".
+1. Nhìn lên góc trên cùng bên phải, bấm nút "Kết nối Ví" (ví demo thử nghiệm tính năng).
 2. Ở khung Hoán đổi Tài sản, bạn chọn đồng tiền mình đang có (ví dụ: BTC) và đồng tiền muốn đổi sang (ví dụ: VND).
 3. Nhập số lượng coin bất kỳ rồi bấm "Xác nhận Hoán đổi" để tận hưởng hiệu ứng xử lý cực kỳ đẹp mắt nhé!
-
-Hi vọng dự án nhỏ này mang lại chút cảm hứng hoặc giúp ích được gì đó cho bạn. Nếu thấy hay, đừng quên để lại cho mình 1 Star ủng hộ nhé! Cảm ơn mọi người!
