@@ -1,16 +1,17 @@
 # Crypto Price Checker
 
-Chào mọi người! Đây là một dự án nhỏ mà mình làm một cái demo dashboard theo dõi tài chính cá nhân. Giao diện được thiết kế theo phong cách Web3 (phi tập trung) hiện đại và dễ tiếp cận.
+Chào mọi người! Đây là một dự án nhỏ mà mình làm một cái demo dashboard giá của các đổng coin và cổ phiếu. Giao diện được thiết kế theo phong cách Web3 (phi tập trung) hiện đại và dễ tiếp cận.
 
+## Link Demo: https://khangja.github.io/Crypto-Price-Check/
 ---
 
-## Dự án này có gì hay?
+## Dự án này có gì?
 
 - **Giá Crypto Real-time:** Dữ liệu giá của các đồng coin lớn (BTC, ETH, SOL) được lấy trực tiếp từ API của Binance.
 - **Tính năng Giả lập Swap:** Mình có thiết kế một bộ khung hoán đổi tài sản nhìn y hệt như Uniswap. Bạn có thể nhập số lượng và bấm đổi thử để xem hiệu ứng xử lý Web3 cực mượt.
-- **Bảng Giá Chứng Khoán (Mô phỏng):** Ngoài crypto, mình có làm thêm phần giả lập biến động giá cho mấy mã công nghệ lớn như AAPL, TSLA, NVDA để dashboard nhìn sinh động hơn.
+- **Bảng Giá Chứng Khoán (Mô phỏng):** Ngoài crypto, mình có làm thêm phần giả lập biến động giá cho mấy mã công nghệ lớn như AAPL, TSLA, NVDA.
 - **Biểu đồ Trực quan:** Sử dụng biểu đồ để theo dõi xu hướng giá, giao diện hiện đại và rất nịnh mắt.
-- **Dark/Light Mode:** Thích giao diện tối huyền bí hay sáng sủa sạch sẽ đều có đủ.
+- **Dark/Light Mode:** Giao diện tối huyền bí hay sáng sủa sạch sẽ đều có đủ.
 - **Demo Kết nối Ví:** Trải nghiệm thử cảm giác bấm "Connect Wallet" chuẩn chỉnh Web3.
 
 ---
@@ -49,7 +50,6 @@ Sau đó mở trình duyệt và truy cập vào địa chỉ: http://localhost:
 
 ## Thử nghiệm tính năng Swap (Hoán đổi) như thế nào?
 
-Nếu bạn muốn test thử tính năng Swap, hãy làm theo các bước này nhé:
 1. Nhìn lên góc trên cùng bên phải, bấm nút "Kết nối Ví" (ví demo thử nghiệm tính năng).
 2. Ở khung Hoán đổi Tài sản, bạn chọn đồng tiền mình đang có (ví dụ: BTC) và đồng tiền muốn đổi sang (ví dụ: VND).
 3. Nhập số lượng coin bất kỳ rồi bấm "Xác nhận Hoán đổi" để tận hưởng hiệu ứng xử lý cực kỳ đẹp mắt nhé!
