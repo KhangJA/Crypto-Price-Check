@@ -52,20 +52,46 @@ export const state = {
   },
   activeAsset: 'BTC',
   activeInterval: '7D',
-  walletConnected: false,
-  walletAddress: '',
+  walletConnected: localStorage.getItem("crypto_check_wallet_connected") === "true",
+  walletAddress: localStorage.getItem("crypto_check_wallet_address") || '',
   walletBalance: 0,
-  walletBalances: {
-    BTC: 0.15,
-    ETH: 1.8,
-    SOL: 12.0,
-    USDT: 1500.0,
-    VND: 50000000.0
-  },
+  walletBalances: (() => {
+    const defaultBalances = {
+      BTC: 0.15,
+      ETH: 1.8,
+      SOL: 12.0,
+      USDT: 1500.0,
+      VND: 50000000.0
+    };
+    try {
+      const saved = JSON.parse(localStorage.getItem("crypto_check_wallet_balances"));
+      return (saved && typeof saved === 'object') ? { ...defaultBalances, ...saved } : defaultBalances;
+    } catch (e) {
+      return defaultBalances;
+    }
+  })(),
+  swapHistory: (() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("crypto_check_swap_history"));
+      return Array.isArray(saved) ? saved : [];
+    } catch (e) {
+      return [];
+    }
+  })(),
   searchQuery: '',
   activeTab: 'all',
   mainChartInstance: null
 };
+
+export function saveWalletState() {
+  localStorage.setItem("crypto_check_wallet_connected", state.walletConnected);
+  localStorage.setItem("crypto_check_wallet_address", state.walletAddress);
+  localStorage.setItem("crypto_check_wallet_balances", JSON.stringify(state.walletBalances));
+}
+
+export function saveSwapHistory() {
+  localStorage.setItem("crypto_check_swap_history", JSON.stringify(state.swapHistory));
+}
 
 export function getUSDPrice(symbol) {
   if (state.assets[symbol]) {

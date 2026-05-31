@@ -1,5 +1,5 @@
 // ui.js
-import { state, getAssetLogo, getUSDPrice, recalculatePortfolioValue } from './state.js';
+import { state, getAssetLogo, getUSDPrice, recalculatePortfolioValue, saveWalletState, saveSwapHistory } from './state.js';
 import { toggleWalletConnection, showToast } from './wallet.js';
 
 export function formatCurrency(value) {
@@ -680,6 +680,7 @@ export function executeSwapTransaction() {
 
     // 3. Tính toán lại tổng giá trị danh mục dynamically
     recalculatePortfolioValue();
+    saveWalletState();
 
     // 4. Thêm giao dịch vào lịch sử hiển thị
     addSwapTransactionToHistory(fromVal, toVal, amountVal, resultVal);
@@ -720,25 +721,70 @@ export function updateSwapButtonState() {
   calculateConversion();
 }
 
-// Thêm lịch sử giao dịch hoán đổi mượt mà vào dApp ledger
-export function addSwapTransactionToHistory(fromSymbol, toSymbol, fromAmt, toAmt) {
+// Render lịch sử giao dịch hoán đổi từ state vào UI (ở cả 2 vị trí hiển thị)
+export function renderSwapHistory() {
   const container = document.getElementById("swap-history-container");
   const list = document.getElementById("swap-history-list");
   const wContainer = document.getElementById("wallet-history-container");
   const wList = document.getElementById("wallet-history-list");
-  
-  // Hiển thị khung lịch sử
+
+  if (!state.swapHistory || state.swapHistory.length === 0) {
+    if (list) {
+      list.innerHTML = `<div class="text-[10px] text-slate-400 dark:text-slate-500 text-center py-2 italic">Chưa có giao dịch hoán đổi nào.</div>`;
+    }
+    if (wList) {
+      wList.innerHTML = `<div class="text-[10px] text-slate-400 dark:text-slate-500 text-center py-2 italic">Chưa có giao dịch hoán đổi nào.</div>`;
+    }
+    if (container) container.classList.add("hidden");
+    if (wContainer) wContainer.classList.add("hidden");
+    return;
+  }
+
   if (container) container.classList.remove("hidden");
   if (wContainer) wContainer.classList.remove("hidden");
-  
-  // Xóa chữ placeholder trống
-  if (list && list.querySelector("div.italic")) {
-    list.innerHTML = "";
-  }
-  if (wList && wList.querySelector("div.italic")) {
-    wList.innerHTML = "";
-  }
-  
+
+  if (list) list.innerHTML = "";
+  if (wList) wList.innerHTML = "";
+
+  state.swapHistory.forEach(tx => {
+    const fakeHash = tx.hash;
+    const fromSymbol = tx.fromSymbol;
+    const toSymbol = tx.toSymbol;
+    const fromAmt = tx.fromAmt;
+    const toAmt = tx.toAmt;
+    const timeStr = tx.timeStr;
+    const shortHash = `${fakeHash.substring(0, 6)}...${fakeHash.substring(fakeHash.length - 4)}`;
+
+    const makeRow = () => {
+      const row = document.createElement("div");
+      row.className = "flex items-center justify-between text-[10px] bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-gray-800/40 p-2.5 rounded-xl hover:border-slate-350 dark:hover:border-gray-700 transition-all duration-300 animate-slide-down";
+      row.innerHTML = `
+        <div class="flex items-center gap-2.5">
+          <div class="flex items-center -space-x-1 shrink-0">
+            <img src="${getAssetLogo(fromSymbol)}" class="w-4 h-4 rounded-full border border-white dark:border-gray-900 bg-white object-cover shrink-0" />
+            <img src="${getAssetLogo(toSymbol)}" class="w-4 h-4 rounded-full border border-white dark:border-gray-900 bg-white object-cover shrink-0" />
+          </div>
+          <div>
+            <div class="font-bold text-slate-800 dark:text-slate-200">
+              Bán ${fromAmt.toLocaleString('en-US', {maximumFractionDigits: 6})} ${fromSymbol} ➔ Nhận ${toAmt} ${toSymbol}
+            </div>
+            <div class="text-[8px] text-slate-400 dark:text-slate-500 font-mono mt-0.5">
+              ${timeStr} | Tx: <span onclick="showTxDetails('${fakeHash}', '${fromSymbol}', '${toSymbol}', '${fromAmt}', '${toAmt}', '${timeStr}')" class="text-sky-500 hover:text-sky-600 dark:text-sky-400 dark:hover:text-sky-300 hover:underline cursor-pointer font-bold">${shortHash}</span>
+            </div>
+          </div>
+        </div>
+        <span class="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold uppercase text-[8px] tracking-wide shrink-0">Thành công</span>
+      `;
+      return row;
+    };
+
+    if (list) list.appendChild(makeRow());
+    if (wList) wList.appendChild(makeRow());
+  });
+}
+
+// Thêm lịch sử giao dịch hoán đổi mượt mà vào dApp ledger và lưu localStorage
+export function addSwapTransactionToHistory(fromSymbol, toSymbol, fromAmt, toAmt) {
   const now = new Date();
   const timeStr = now.toTimeString().split(' ')[0]; // Định dạng HH:MM:SS
   
@@ -748,38 +794,19 @@ export function addSwapTransactionToHistory(fromSymbol, toSymbol, fromAmt, toAmt
   for (let i = 0; i < 28; i++) {
     fakeHash += hexChars[Math.floor(Math.random() * 16)];
   }
-  const shortHash = `${fakeHash.substring(0, 6)}...${fakeHash.substring(fakeHash.length - 4)}`;
-  
-  const makeRow = () => {
-    const row = document.createElement("div");
-    row.className = "flex items-center justify-between text-[10px] bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-gray-800/40 p-2.5 rounded-xl hover:border-slate-350 dark:hover:border-gray-700 transition-all duration-300 animate-slide-down";
-    row.innerHTML = `
-      <div class="flex items-center gap-2.5">
-        <div class="flex items-center -space-x-1 shrink-0">
-          <img src="${getAssetLogo(fromSymbol)}" class="w-4 h-4 rounded-full border border-white dark:border-gray-900 bg-white object-cover shrink-0" />
-          <img src="${getAssetLogo(toSymbol)}" class="w-4 h-4 rounded-full border border-white dark:border-gray-900 bg-white object-cover shrink-0" />
-        </div>
-        <div>
-          <div class="font-bold text-slate-800 dark:text-slate-200">
-            Bán ${fromAmt.toLocaleString('en-US', {maximumFractionDigits: 6})} ${fromSymbol} ➔ Nhận ${toAmt} ${toSymbol}
-          </div>
-          <div class="text-[8px] text-slate-400 dark:text-slate-500 font-mono mt-0.5">
-            ${timeStr} | Tx: <span onclick="showTxDetails('${fakeHash}', '${fromSymbol}', '${toSymbol}', '${fromAmt}', '${toAmt}', '${timeStr}')" class="text-sky-500 hover:text-sky-600 dark:text-sky-400 dark:hover:text-sky-300 hover:underline cursor-pointer font-bold">${shortHash}</span>
-          </div>
-        </div>
-      </div>
-      <span class="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold uppercase text-[8px] tracking-wide shrink-0">Thành công</span>
-    `;
-    return row;
+
+  const newTx = {
+    fromSymbol,
+    toSymbol,
+    fromAmt,
+    toAmt,
+    hash: fakeHash,
+    timeStr
   };
-  
-  // Chèn lên đầu danh sách của cả hai view
-  if (list) {
-    list.insertBefore(makeRow(), list.firstChild);
-  }
-  if (wList) {
-    wList.insertBefore(makeRow(), wList.firstChild);
-  }
+
+  state.swapHistory.unshift(newTx);
+  saveSwapHistory();
+  renderSwapHistory();
 }
 
 // Xóa trắng nhật ký hoán đổi - Hiển thị popup xác nhận
@@ -808,21 +835,9 @@ export function clearSwapHistory() {
 
 // Thực tế xóa trắng nhật ký hoán đổi
 export function executeClearSwapHistory() {
-  const container = document.getElementById("swap-history-container");
-  const list = document.getElementById("swap-history-list");
-  const wContainer = document.getElementById("wallet-history-container");
-  const wList = document.getElementById("wallet-history-list");
-  
-  if (list) {
-    list.innerHTML = `<div class="text-[10px] text-slate-400 dark:text-slate-500 text-center py-2 italic">Chưa có giao dịch hoán đổi nào.</div>`;
-  }
-  if (wList) {
-    wList.innerHTML = `<div class="text-[10px] text-slate-400 dark:text-slate-500 text-center py-2 italic">Chưa có giao dịch hoán đổi nào.</div>`;
-  }
-  
-  if (container) container.classList.add("hidden");
-  if (wContainer) wContainer.classList.add("hidden");
-
+  state.swapHistory = [];
+  saveSwapHistory();
+  renderSwapHistory();
   hideModal();
 }
 
@@ -974,6 +989,7 @@ export function triggerFaucet(symbol) {
   state.walletBalances[symbol] = (state.walletBalances[symbol] || 0) + qty;
   
   recalculatePortfolioValue();
+  saveWalletState();
   renderWalletDashboard();
   showToast("Nhận Faucet thành công!", `Bạn đã nhận thêm ${qty.toLocaleString()} ${symbol} vào ví.`);
 }
@@ -1021,6 +1037,7 @@ window.openTokenSelector = openTokenSelector;
 window.selectToken = selectToken;
 window.toggleSMAIndicator = toggleSMAIndicator;
 window.addSwapTransactionToHistory = addSwapTransactionToHistory;
+window.renderSwapHistory = renderSwapHistory;
 window.clearSwapHistory = clearSwapHistory;
 window.showTxDetails = showTxDetails;
 window.renderWalletDashboard = renderWalletDashboard;

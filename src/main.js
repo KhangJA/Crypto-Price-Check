@@ -1,7 +1,8 @@
 // main.js
 import { state } from './state.js';
 import { synchronizeForexRates, synchronizeCryptoFeeds, initPriceTickEngine, populateDefaultHistories } from './api.js';
-import { refreshAssetsUI, refreshMainChart, updateMoversWidget, calculateConversion, updateSwapIcons, updateSwapButtonState } from './ui.js';
+import { refreshAssetsUI, refreshMainChart, updateMoversWidget, calculateConversion, updateSwapIcons, updateSwapButtonState, renderSwapHistory } from './ui.js';
+import { initWalletDOM } from './wallet.js';
 
 document.addEventListener("DOMContentLoaded", () => {
   initTerminal();
@@ -36,6 +37,8 @@ function initTerminal() {
   bindMobileDrawer();
   initPriceTickEngine();
   updateSwapButtonState();
+  initWalletDOM();
+  renderSwapHistory();
 
   lucide.createIcons();
 }

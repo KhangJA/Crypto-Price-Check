@@ -1,5 +1,5 @@
 // wallet.js
-import { state, recalculatePortfolioValue } from './state.js';
+import { state, recalculatePortfolioValue, saveWalletState } from './state.js';
 import { updateSwapButtonState } from './ui.js';
 
 export function toggleWalletConnection() {
@@ -23,6 +23,7 @@ export function toggleWalletConnection() {
       
       // Tính toán giá trị ròng danh mục thực tế từ số dư tài sản
       recalculatePortfolioValue();
+      saveWalletState();
       
       updateSwapButtonState();
       showToast("Đã kết nối Ví", "Thành công kết nối với nhà cung cấp Web3.");
@@ -31,6 +32,7 @@ export function toggleWalletConnection() {
     state.walletConnected = false;
     state.walletAddress = "";
     state.walletBalance = 0;
+    saveWalletState();
     
     btnText.textContent = "Kết nối Ví";
     btnDot.className = "w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500";
@@ -41,6 +43,26 @@ export function toggleWalletConnection() {
     
     updateSwapButtonState();
     showToast("Đã ngắt kết nối Ví", "Phiên làm việc Web3 của bạn đã kết thúc.");
+  }
+}
+
+export function initWalletDOM() {
+  const btnText = document.getElementById("wallet-btn-text");
+  const btnDot = document.getElementById("wallet-status-dot");
+  const portfolioVal = document.getElementById("portfolio-value");
+  
+  if (!btnText || !btnDot) return;
+
+  if (state.walletConnected) {
+    btnText.textContent = state.walletAddress;
+    btnDot.className = "w-1.5 h-1.5 rounded-full bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.5)]";
+    recalculatePortfolioValue();
+  } else {
+    btnText.textContent = "Kết nối Ví";
+    btnDot.className = "w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500";
+    if (portfolioVal) {
+      portfolioVal.textContent = `$0.00`;
+    }
   }
 }
 
@@ -70,4 +92,5 @@ export function hideToast() {
 
 // Make functions globally accessible for inline HTML handlers if needed
 window.toggleWalletConnection = toggleWalletConnection;
+window.initWalletDOM = initWalletDOM;
 window.hideToast = hideToast;
